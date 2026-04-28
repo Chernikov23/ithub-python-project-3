@@ -1,16 +1,110 @@
 {
   "info": {
-    "_postman_id": "9871fe36-27d1-41c6-88b4-3b82020a9e6c",
-    "name": "InDreams (Simplified)",
+    "_postman_id": "4866db6e-266b-453b-8e7d-bfa063383c69",
+    "name": "InDreams (Full)",
     "description": "Коллекция для тестирования InDreams API \n\nhttps://github.com/ITHUB-SPB/ithub-python-project-3",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "6387549",
-    "_collection_link": "https://go.postman.co/collection/6387549-9871fe36-27d1-41c6-88b4-3b82020a9e6c?source=collection_link"
+    "_collection_link": "https://go.postman.co/collection/6387549-4866db6e-266b-453b-8e7d-bfa063383c69?source=collection_link"
   },
   "item": [
     {
       "name": "Unauthorized",
       "item": [
+        {
+          "name": "Favorite Dream",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Код ответа 401 при отсутствии токена', () => {",
+                  "    pm.response.to.have.status(401);",
+                  "})"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Requested-With",
+                "value": "XMLHttpRequest"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "{{API_URL}}/dreams/{{id}}/favorite",
+              "host": [
+                "{{API_URL}}"
+              ],
+              "path": [
+                "dreams",
+                "{{id}}",
+                "favorite"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Unfavorite Dream",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Код ответа 401 при отсутствии токена', () => {",
+                  "    pm.response.to.have.status(401);",
+                  "})"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Requested-With",
+                "value": "XMLHttpRequest"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "{{API_URL}}/dreams/{{id}}/favorite",
+              "host": [
+                "{{API_URL}}"
+              ],
+              "path": [
+                "dreams",
+                "{{id}}",
+                "favorite"
+              ]
+            }
+          },
+          "response": []
+        },
         {
           "name": "Create Dream",
           "event": [
@@ -411,10 +505,26 @@
                   "        pm.expect(dream.description).to.be.a('string');",
                   "    })",
                   "",
-                  "    pm.test('Содержит строковое поле \"author\"', () => {",
+                  "    pm.test('Содержит поле \"author\", являющееся объектом', () => {",
                   "        pm.expect(dream).to.haveOwnProperty('author');",
-                  "        pm.expect(dream.author).to.be.an('string');",
-                  "        pm.expect(dream.author).to.have.length.above(0);",
+                  "        pm.expect(dream.author).to.be.an('object');",
+                  "    })",
+                  "",
+                  "    pm.test('Содержит непустое строковое поле \"author.username\"', () => {",
+                  "        pm.expect(dream.author).to.haveOwnProperty('username');",
+                  "        pm.expect(dream.author.username).to.be.an('string');",
+                  "        pm.expect(dream.author.username).to.have.length.above(0);",
+                  "    })",
+                  "",
+                  "    pm.test('Содержит численное неотрицательное поле \"favorites_count\"', () => {",
+                  "        pm.expect(dream).to.haveOwnProperty('favorites_count');",
+                  "        pm.expect(dream.favorites_count).to.be.a('number');",
+                  "        pm.expect(dream.favorites_count).to.be.greaterThanOrEqual(0);",
+                  "    })",
+                  "",
+                  "    pm.test('Содержит поле \"favorited_by\", являющееся массивом\"', () => {",
+                  "        pm.expect(dream).to.haveOwnProperty('favorited_by');",
+                  "        pm.expect(dream.favorited_by).to.be.an('array');",
                   "    })",
                   "",
                   "} else {",
@@ -482,13 +592,28 @@
                   "    pm.expect(dream.description).to.be.a('string');",
                   "})",
                   "",
-                  "pm.test('Содержит строковое поле \"author\", эквивалентное заданному', () => {",
+                  "pm.test('Содержит поле \"author\", являющееся объектом', () => {",
                   "    pm.expect(dream).to.haveOwnProperty('author');",
-                  "    pm.expect(dream.author).to.be.an('string');",
-                  "    pm.expect(dream.author).to.have.length.above(0);",
-                  "    pm.expect(dream.author).to.be.eq(pm.variables.get('USERNAME'))",
+                  "    pm.expect(dream.author).to.be.an('object');",
                   "})",
-                  ""
+                  "",
+                  "pm.test('Содержит непустое строковое поле \"author.username\"', () => {",
+                  "    pm.expect(dream.author).to.haveOwnProperty('username');",
+                  "    pm.expect(dream.author.username).to.be.an('string');",
+                  "    pm.expect(dream.author.username).to.have.length.above(0);",
+                  "})",
+                  "",
+                  "pm.test('Содержит численное поле \"favorites_count\" со значением 0', () => {",
+                  "    pm.expect(dream).to.haveOwnProperty('favorites_count');",
+                  "    pm.expect(dream.favorites_count).to.be.a('number');",
+                  "    pm.expect(dream.favorites_count).to.be.eq(0);",
+                  "})",
+                  "",
+                  "pm.test('Содержит поле \"favorited_by\", являющееся пустым массивом\"', () => {",
+                  "    pm.expect(dream).to.haveOwnProperty('favorited_by');",
+                  "    pm.expect(dream.favorited_by).to.be.an('array');",
+                  "    pm.expect(dream.favorited_by.length).to.be.eq(0);",
+                  "})"
                 ],
                 "type": "text/javascript",
                 "packages": {},
@@ -567,12 +692,28 @@
                   "    pm.expect(dream.description).to.be.a('string');",
                   "})",
                   "",
-                  "pm.test('Содержит строковое поле \"author\"', () => {",
+                  "pm.test('Содержит поле \"author\", являющееся объектом', () => {",
                   "    pm.expect(dream).to.haveOwnProperty('author');",
-                  "    pm.expect(dream.author).to.be.an('string');",
-                  "    pm.expect(dream.author).to.have.length.above(0);",
+                  "    pm.expect(dream.author).to.be.an('object');",
                   "})",
-                  ""
+                  "",
+                  "pm.test('Содержит непустое строковое поле \"author.username\"', () => {",
+                  "    pm.expect(dream.author).to.haveOwnProperty('username');",
+                  "    pm.expect(dream.author.username).to.be.an('string');",
+                  "    pm.expect(dream.author.username).to.have.length.above(0);",
+                  "})",
+                  "",
+                  "pm.test('Содержит численное поле \"favorites_count\" со значением 0', () => {",
+                  "    pm.expect(dream).to.haveOwnProperty('favorites_count');",
+                  "    pm.expect(dream.favorites_count).to.be.a('number');",
+                  "    pm.expect(dream.favorites_count).to.be.eq(0);",
+                  "})",
+                  "",
+                  "pm.test('Содержит поле \"favorited_by\", являющееся пустым массивом\"', () => {",
+                  "    pm.expect(dream).to.haveOwnProperty('favorited_by');",
+                  "    pm.expect(dream.favorited_by).to.be.an('array');",
+                  "    pm.expect(dream.favorited_by).to.have.length(0);",
+                  "})"
                 ],
                 "type": "text/javascript",
                 "packages": {},
@@ -646,11 +787,27 @@
                   "        pm.expect(dream.description).to.be.a('string');",
                   "    })",
                   "",
-                  "    pm.test('Содержит строковое поле \"author\", эквивалентное заданному', () => {",
+                  "    pm.test('Содержит поле \"author\", являющееся объектом', () => {",
                   "        pm.expect(dream).to.haveOwnProperty('author');",
-                  "        pm.expect(dream.author).to.be.an('string');",
-                  "        pm.expect(dream.author).to.have.length.above(0);",
-                  "        pm.expect(dream.author).to.be.eq(pm.variables.get('USERNAME'))",
+                  "        pm.expect(dream.author).to.be.an('object');",
+                  "    })",
+                  "",
+                  "    pm.test('Содержит строковое поле \"author.username\", эквивалентное заданному', () => {",
+                  "        pm.expect(dream.author).to.haveOwnProperty('username');",
+                  "        pm.expect(dream.author.username).to.be.an('string');",
+                  "        pm.expect(dream.author.username).to.have.length.above(0);",
+                  "        pm.expect(dream.author.username).to.be.eq(pm.variables.get('USERNAME'))",
+                  "    })",
+                  "",
+                  "    pm.test('Содержит численное неотрицательное поле \"favorites_count\"', () => {",
+                  "        pm.expect(dream).to.haveOwnProperty('favorites_count');",
+                  "        pm.expect(dream.favorites_count).to.be.a('number');",
+                  "        pm.expect(dream.favorites_count).to.be.greaterThanOrEqual(0);",
+                  "    })",
+                  "",
+                  "    pm.test('Содержит поле \"favorited_by\", являющееся массивом\"', () => {",
+                  "        pm.expect(dream).to.haveOwnProperty('favorited_by');",
+                  "        pm.expect(dream.favorited_by).to.be.an('array');",
                   "    })",
                   "",
                   "} else {",
@@ -695,6 +852,257 @@
                   "key": "author",
                   "value": "{{USERNAME}}"
                 }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Favorite Dream",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var dream = pm.response.json() || {};",
+                  "",
+                  "pm.test('Содержит поле \"created_at\"', () => {",
+                  "    dream.hasOwnProperty('created_at');",
+                  "})",
+                  "",
+                  "pm.test('Содержит поле \"description\"', () => {",
+                  "    dream.hasOwnProperty('description');",
+                  "})",
+                  "",
+                  "pm.test('Содержит поле \"author\"', () => {",
+                  "    dream.hasOwnProperty('author');",
+                  "})",
+                  "",
+                  "pm.test('Содержит поле \"favorited_by\"', () => {",
+                  "    dream.hasOwnProperty('favorited_by');",
+                  "})",
+                  "",
+                  "pm.test('Содержит поле \"favorites_count\"', () => {",
+                  "    dream.hasOwnProperty('favorites_count');",
+                  "})",
+                  "",
+                  "pm.test('Поле \"favorited_by\" содержит имя текущего пользователя', () => {",
+                  "    pm.expect(dream.favorited_by).to.include(pm.variables.get('USERNAME'))",
+                  "})",
+                  "",
+                  "pm.test('Значение \"favorites_count\" больше 0', () => {",
+                  "    pm.expect(dream.favorites_count).to.be.greaterThan(0);",
+                  "})",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Requested-With",
+                "value": "XMLHttpRequest"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{API_URL}}/dreams/{{id}}/favorite",
+              "host": [
+                "{{API_URL}}"
+              ],
+              "path": [
+                "dreams",
+                "{{id}}",
+                "favorite"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Dreams Favorited by Username",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var is200Response = pm.response.code === 200;",
+                  "",
+                  "pm.test('Код ответа 200 OK', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "})",
+                  "",
+                  "if (is200Response) {",
+                  "    var responseJson = pm.response.json()",
+                  "",
+                  "    pm.test('Содержит поле \"dreams\", являющееся массивом', () => {",
+                  "        pm.expect(responseJson).to.haveOwnProperty('dreams');",
+                  "        pm.expect(responseJson.dreams).to.be.an('array');",
+                  "    })",
+                  "",
+                  "    pm.test('Содержит численное поле \"dreams_count\"', () => {",
+                  "        pm.expect(responseJson).to.haveOwnProperty('dreams_count');",
+                  "        pm.expect(responseJson.dreams_count).to.be.a('number');",
+                  "    })",
+                  "",
+                  "    if(responseJson.dreams.length){",
+                  "        var dream = responseJson.dreams[0];",
+                  "",
+                  "        pm.test('Содержит поле \"created_at\" формата ISO8601', () => {",
+                  "            pm.expect(dream).to.haveOwnProperty('created_at');",
+                  "        })",
+                  "",
+                  "        pm.test('Содержит строковое поле \"description\"', () => {",
+                  "            pm.expect(dream).to.haveOwnProperty('description');",
+                  "            pm.expect(dream.description).to.be.a('string');",
+                  "        })",
+                  "",
+                  "        pm.test('Содержит поле \"author\", являющееся объектом', () => {",
+                  "            pm.expect(dream).to.haveOwnProperty('author');",
+                  "            pm.expect(dream.author).to.be.an('object');",
+                  "        })",
+                  "",
+                  "        pm.test('Содержит строковое поле \"author.username\"', () => {",
+                  "            pm.expect(dream.author).to.haveOwnProperty('username');",
+                  "            pm.expect(dream.author.username).to.be.an('string');",
+                  "            pm.expect(dream.author.username).to.have.length.above(0);",
+                  "        })",
+                  "",
+                  "        pm.test('Содержит поле \"favorites_count\", не меньшее 1', () => {",
+                  "            pm.expect(dream).to.haveOwnProperty('favorites_count');",
+                  "            pm.expect(dream.favorites_count).to.be.a('number');",
+                  "            pm.expect(dream.favorites_count).to.be.greaterThanOrEqual(1);",
+                  "        })",
+                  "",
+                  "        pm.test('Содержит поле \"favorited_by\", являющееся массивом\"', () => {",
+                  "            pm.expect(dream).to.haveOwnProperty('favorited_by');",
+                  "            pm.expect(dream.favorited_by).to.be.an('array');",
+                  "        })",
+                  "",
+                  "    } else {",
+                  "        pm.test('Поле \"dreams_count\" равно нулю, если снов не найдено', () => {",
+                  "            pm.expect(responseJson.dreams_count).to.be.eql(0);",
+                  "        })",
+                  "    }",
+                  "}",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Requested-With",
+                "value": "XMLHttpRequest"
+              }
+            ],
+            "url": {
+              "raw": "{{API_URL}}/dreams?favorited={{USERNAME}}",
+              "host": [
+                "{{API_URL}}"
+              ],
+              "path": [
+                "dreams"
+              ],
+              "query": [
+                {
+                  "key": "favorited",
+                  "value": "{{USERNAME}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Unfavorite Dream",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var dream = pm.response.json() || {};",
+                  "",
+                  "pm.test('Содержит поле \"created_at\"', () => {",
+                  "    dream.hasOwnProperty('created_at');",
+                  "})",
+                  "",
+                  "pm.test('Содержит поле \"description\"', () => {",
+                  "    dream.hasOwnProperty('description');",
+                  "})",
+                  "",
+                  "pm.test('Содержит поле \"author\"', () => {",
+                  "    dream.hasOwnProperty('author');",
+                  "})",
+                  "",
+                  "pm.test('Содержит поле \"favorited_by\"', () => {",
+                  "    dream.hasOwnProperty('favorited_by');",
+                  "})",
+                  "",
+                  "pm.test('Содержит поле \"favorites_count\"', () => {",
+                  "    dream.hasOwnProperty('favorites_count');",
+                  "})",
+                  "",
+                  "pm.test('Поле \"favorited_by\" не содержит имя текущего пользователя', () => {",
+                  "    pm.expect(dream.favorited_by).to.not.includes(pm.environment.get('USERNAME'))",
+                  "})"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Requested-With",
+                "value": "XMLHttpRequest"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "{{API_URL}}/dreams/{{id}}/favorite",
+              "host": [
+                "{{API_URL}}"
+              ],
+              "path": [
+                "dreams",
+                "{{id}}",
+                "favorite"
               ]
             }
           },
@@ -772,7 +1180,10 @@
                   "    pm.expect(profile).to.haveOwnProperty('username');",
                   "    pm.expect(profile.username).to.be.a('string');",
                   "})",
-                  ""
+                  "",
+                  "pm.test('Содержит строковое (nullable) поле \"bio\"', () => {",
+                  "    pm.expect(profile).to.haveOwnProperty('bio');",
+                  "})"
                 ],
                 "type": "text/javascript",
                 "packages": {},
@@ -826,6 +1237,10 @@
                   "    pm.expect(user).to.haveOwnProperty('username');",
                   "    pm.expect(user.username).to.be.a('string');",
                   "})",
+                  "",
+                  "pm.test('Содержит строковое (nullable) поле \"bio\"', () => {",
+                  "    pm.expect(user).to.haveOwnProperty('bio');",
+                  "})",
                   ""
                 ],
                 "type": "text/javascript",
@@ -858,6 +1273,67 @@
               "path": [
                 "users",
                 "me"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Код ответа 200 OK', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "})",
+                  "",
+                  "var user = pm.response.json() || {};",
+                  "",
+                  "pm.test('Содержит строковое поле \"username\"', () => {",
+                  "    pm.expect(user).to.haveOwnProperty('username');",
+                  "    pm.expect(user.username).to.be.a('string');",
+                  "})",
+                  "",
+                  "pm.test('Содержит строковое (nullable) поле \"bio\"', () => {",
+                  "    pm.expect(user).to.haveOwnProperty('bio');",
+                  "})",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Requested-With",
+                "value": "XMLHttpRequest"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"bio\":\"new bio\"}"
+            },
+            "url": {
+              "raw": "{{API_URL}}/users",
+              "host": [
+                "{{API_URL}}"
+              ],
+              "path": [
+                "users"
               ]
             }
           },
