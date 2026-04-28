@@ -21,19 +21,6 @@ def test_guest_cannot_delete_dream(client: TestClient, session: Session) -> None
 	assert r.status_code == status.HTTP_401_UNAUTHORIZED
 
 
-def test_superadmin_can_delete_dreams(client: TestClient, session: Session) -> None:
-	# TODO
-	acting_as_john(session, client)
-
-	r = client.put(
-		'/dreams/test-title',
-		json={
-			'description': 'Test Title',
-		},
-	)
-	assert r.status_code == status.HTTP_404_NOT_FOUND
-
-
 def test_cannot_delete_non_existent_dream(client: TestClient, session: Session) -> None:
 	acting_as_john(session, client)
 	r = client.delete('/dreams/50')

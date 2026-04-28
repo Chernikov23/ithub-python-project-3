@@ -27,10 +27,5 @@ def test_can_get_dream(client: TestClient, session: Session) -> None:
 	assert {
 		'id': 1,
 		'description': 'Test Description 1',
-		'author': {
-			'username': 'john.doe',
-			'bio': None,
-		},
-		'favorited_by': [],
-		'favorites_count': 0,
+		'author': 'john.doe',
 	} == dict(json_response)

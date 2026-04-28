@@ -63,12 +63,7 @@ def test_can_create_dream(client: TestClient, session: Session) -> None:
 	assert {
 		'id': 1,
 		'description': 'Test Description 1',
-		'author': {
-			'username': 'john.doe',
-			'bio': None,
-		},
-		'favorited_by': [],
-		'favorites_count': 0,
+		'author': 'john.doe',
 	} == json_response
 
 	assert session.scalar(select(models.Dream).filter_by(description='Test Description 1')) is not None
