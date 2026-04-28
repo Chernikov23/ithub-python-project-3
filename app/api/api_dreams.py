@@ -1,7 +1,11 @@
 from fastapi import APIRouter, Path, Query, status
 
 from app import schema
-from app.api.exceptions import ConflictHTTPException, NotFoundHTTPException, CredentialsHTTPException
+from app.api.exceptions import (
+	ConflictHTTPException,
+	NotFoundHTTPException,
+	CredentialsHTTPException,
+)
 from app.api.dependencies import CurrentUser, SessionDatabase
 from app.database.exceptions import DuplicateDatabaseException
 from app.services import dreams_service
@@ -18,8 +22,8 @@ dreams_router = APIRouter(
 	description='Чтение снов с возможностью поиска, фильтрации, пагинации, с сортировкой по времени добавления',
 	response_model=schema.MultipleDreams,
 	responses={
-		status.HTTP_422_UNPROCESSABLE_CONTENT: { "description": "Параметры запроса не валидные"}	
-	}
+		status.HTTP_422_UNPROCESSABLE_CONTENT: {'description': 'Параметры запроса не валидные'}
+	},
 )
 def get_dreams_list(
 	session: SessionDatabase,
@@ -30,11 +34,11 @@ def get_dreams_list(
 ) -> schema.MultipleDreams:
 	"""
 	Запрашивает dreams_service, возвращает результат согласно схеме.
-	
-	Примечание: здесь и далее при сериализации ответа будет красиво 
+
+	Примечание: здесь и далее при сериализации ответа будет красиво
 	воспользоваться упомянутым в schema.py методом валидации ORM-слоя
 	"""
-	
+
 	raise NotImplementedError
 
 
@@ -45,10 +49,10 @@ def get_dreams_list(
 	response_model=schema.Dream,
 	status_code=201,
 	responses={
-		status.HTTP_401_UNAUTHORIZED: { "description": "Ошибка токена или пользовательских данных" },
-		status.HTTP_409_CONFLICT: { "description": "Пользователь уже добавлял этот сон" },
-		status.HTTP_422_UNPROCESSABLE_CONTENT: { "description": "Данные не валидны" }
-	}
+		status.HTTP_401_UNAUTHORIZED: {'description': 'Ошибка токена или пользовательских данных'},
+		status.HTTP_409_CONFLICT: {'description': 'Пользователь уже добавлял этот сон'},
+		status.HTTP_422_UNPROCESSABLE_CONTENT: {'description': 'Данные не валидны'},
+	},
 )
 def create_dream(
 	current_user: CurrentUser,
@@ -58,9 +62,9 @@ def create_dream(
 	"""
 	Получает текущего пользователя через инъекцию зависимостей,
 	в случае ошибки выбрасывает CredentialsHTTPException.
-	Иначе - запрашивает dreams_service на создание сна. В случае 
-	ошибки дублирования выбрасывает ConflictHTTPException с пояснением. 
-	Иначе - возвращает результат согласно схеме.	
+	Иначе - запрашивает dreams_service на создание сна. В случае
+	ошибки дублирования выбрасывает ConflictHTTPException с пояснением.
+	Иначе - возвращает результат согласно схеме.
 	"""
 
 	raise NotImplementedError
@@ -71,10 +75,10 @@ def create_dream(
 	summary='Чтение сна',
 	response_model=schema.Dream,
 	responses={
-		status.HTTP_401_UNAUTHORIZED: { "description": "Ошибка токена или пользовательских данных" },
-		status.HTTP_404_NOT_FOUND: { "description": "Сон не найден" },
-		status.HTTP_422_UNPROCESSABLE_CONTENT: { "description": "Идентификатор не валиден" }
-	}
+		status.HTTP_401_UNAUTHORIZED: {'description': 'Ошибка токена или пользовательских данных'},
+		status.HTTP_404_NOT_FOUND: {'description': 'Сон не найден'},
+		status.HTTP_422_UNPROCESSABLE_CONTENT: {'description': 'Идентификатор не валиден'},
+	},
 )
 def get_dream(
 	session: SessionDatabase,
@@ -95,11 +99,11 @@ def get_dream(
 	description='Удаление сна (требуется авторизация для удаления собственных снов',
 	status_code=204,
 	responses={
-		status.HTTP_401_UNAUTHORIZED: { "description": "Ошибка токена или пользовательских данных" },
-		status.HTTP_404_NOT_FOUND: { "description": "Сон не найден" },
-		status.HTTP_403_FORBIDDEN: { "description": "Пользователь не является автором сна" },
-		status.HTTP_422_UNPROCESSABLE_CONTENT: { "description": "Идентификатор не валиден" }
-	}
+		status.HTTP_401_UNAUTHORIZED: {'description': 'Ошибка токена или пользовательских данных'},
+		status.HTTP_404_NOT_FOUND: {'description': 'Сон не найден'},
+		status.HTTP_403_FORBIDDEN: {'description': 'Пользователь не является автором сна'},
+		status.HTTP_422_UNPROCESSABLE_CONTENT: {'description': 'Идентификатор не валиден'},
+	},
 )
 def delete(
 	current_user: CurrentUser,

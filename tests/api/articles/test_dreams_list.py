@@ -13,7 +13,7 @@ def test_can_paginate_dreams(client: TestClient, session: Session) -> None:
 
 	assert r.status_code == status.HTTP_200_OK
 
-	json_response = r.json() 
+	json_response = r.json()
 
 	assert len(json_response['dreams']) == 10
 	assert json_response['dreams_count'] == 40
@@ -34,7 +34,7 @@ def test_can_filter_dreams_by_author(client: TestClient, session: Session) -> No
 
 	assert r.status_code == status.HTTP_200_OK
 
-	json_response = r.json() 
+	json_response = r.json()
 
 	assert len(json_response['dreams']) == 10
 	assert json_response['dreams_count'] == 20

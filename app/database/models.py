@@ -16,9 +16,7 @@ class Dream(Base):
 
 	author: Mapped['User'] = relationship('User', back_populates='dreams', lazy='joined')
 
-	__table_args__ = (
-        UniqueConstraint("author_id", "description", name="uq_author_description"),
-    )
+	__table_args__ = (UniqueConstraint('author_id', 'description', name='uq_author_description'),)
 
 
 class User(Base):

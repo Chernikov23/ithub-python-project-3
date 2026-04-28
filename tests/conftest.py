@@ -49,7 +49,9 @@ def create_john_user(session: Session) -> models.User | None:
 		return john_object
 	except (IntegrityError, sqlite3.IntegrityError):
 		session.rollback()
-		return session.scalar(select(models.User).where(models.User.username == john_object.username))
+		return session.scalar(
+			select(models.User).where(models.User.username == john_object.username)
+		)
 	finally:
 		session.close()
 
@@ -66,7 +68,9 @@ def create_jane_user(session: Session) -> models.User | None:
 		return jane_object
 	except (IntegrityError, sqlite3.IntegrityError):
 		session.rollback()
-		return session.scalar(select(models.User).where(models.User.username == jane_object.username))
+		return session.scalar(
+			select(models.User).where(models.User.username == jane_object.username)
+		)
 	finally:
 		session.close()
 
@@ -109,7 +113,6 @@ def generate_dreams(session: Session) -> models.User:
 	assert john is not None
 	assert jane is not None
 
-
 	for i in range(1, 21):
 		dream = models.Dream(
 			description=f'Test Description {i}',
@@ -130,6 +133,6 @@ def generate_dreams(session: Session) -> models.User:
 		session.commit()
 
 	session.refresh(john)
-	
+
 	# session.close()
 	return john

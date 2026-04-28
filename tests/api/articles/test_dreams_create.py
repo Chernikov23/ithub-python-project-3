@@ -66,4 +66,6 @@ def test_can_create_dream(client: TestClient, session: Session) -> None:
 		'author': 'john.doe',
 	} == json_response
 
-	assert session.scalar(select(models.Dream).filter_by(description='Test Description 1')) is not None
+	assert (
+		session.scalar(select(models.Dream).filter_by(description='Test Description 1')) is not None
+	)

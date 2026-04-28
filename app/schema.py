@@ -6,16 +6,14 @@ from pydantic import ConfigDict, Field, field_serializer
 
 
 class BaseModel(PBaseModel):
-	'''
-	Расширенная базовая модель, позволяет 
-	красивее обрабатывать данные ORM-слоя 
-	(правда отдельным методом, который вам 
+	"""
+	Расширенная базовая модель, позволяет
+	красивее обрабатывать данные ORM-слоя
+	(правда отдельным методом, который вам
 	придётся разузнать)
-	'''
-	
-	model_config = ConfigDict(
-		populate_by_name=True, from_attributes=True
-	)
+	"""
+
+	model_config = ConfigDict(populate_by_name=True, from_attributes=True)
 
 
 class UserToken(BaseModel):

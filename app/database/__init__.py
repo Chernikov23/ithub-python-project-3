@@ -11,9 +11,7 @@ class Base(DeclarativeBase):
 
 def get_sqlite3_connection() -> sqlite3.Connection:
 	return sqlite3.connect(
-		settings.DATABASE_URI.lstrip('sqlite:///'), 
-		autocommit=False, 
-		check_same_thread=False
+		settings.DATABASE_URI.lstrip('sqlite:///'), autocommit=False, check_same_thread=False
 	)
 
 

@@ -17,8 +17,8 @@ def register(*, cursor: Cursor, user_data: schema.UserCreate) -> None:
 
 def authenticate(*, cursor: Cursor, user_data: schema.UserCreate) -> str | None:
 	"""
-	Находит пользователя по юзернейму, 
-	сверяет хеш переданного пароля с истинным. 
+	Находит пользователя по юзернейму,
+	сверяет хеш переданного пароля с истинным.
 	В случае несовпадения возвращает None.
 	Иначе - создает и возвращает токен доступа.
 	"""

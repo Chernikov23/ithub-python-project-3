@@ -3,10 +3,7 @@ from fastapi import HTTPException, status
 
 class ConflictHTTPException(HTTPException):
 	def __init__(self, detail: str | None = 'Ошибка при создании записи'):
-		super().__init__(
-			status_code=status.HTTP_409_CONFLICT,
-			detail=detail
-		)
+		super().__init__(status_code=status.HTTP_409_CONFLICT, detail=detail)
 
 
 class CredentialsHTTPException(HTTPException):

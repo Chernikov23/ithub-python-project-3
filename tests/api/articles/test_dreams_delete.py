@@ -29,7 +29,7 @@ def test_cannot_delete_non_existent_dream(client: TestClient, session: Session) 
 
 def test_cannot_delete_dream_of_other_author(client: TestClient, session: Session) -> None:
 	jane = create_jane_user(session)
-	
+
 	assert jane is not None
 
 	jane_dream = generate_dream(author=jane)

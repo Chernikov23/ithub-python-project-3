@@ -6,11 +6,10 @@ def get_by_username(*, cursor: Cursor, username: str) -> schema.UserProfile | No
 	"""
 	:cursor: курсор подключения к базе данных
 	:username: уникальный юзернейм пользователя
-	
-	Запрашивает пользователя из базы данных. 
+
+	Запрашивает пользователя из базы данных.
 	Если пользователь не найден, возвращает None.
 	Иначе - возвращает запись согласно схеме.
-	"""	
-	
-	raise NotImplemented
+	"""
 
+	raise NotImplemented

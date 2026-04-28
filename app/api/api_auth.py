@@ -9,13 +9,13 @@ auth_router = APIRouter(prefix='/auth', tags=['Аккаунты'])
 
 
 @auth_router.post(
-		'/', 
-		summary='Регистрация', 
-		status_code=201,
-		responses={
-			status.HTTP_409_CONFLICT: { "description": "Выбранный юзернейм занят" },
-			status.HTTP_422_UNPROCESSABLE_CONTENT: { "description": "Данные не валидны" }
-		},
+	'/',
+	summary='Регистрация',
+	status_code=201,
+	responses={
+		status.HTTP_409_CONFLICT: {'description': 'Выбранный юзернейм занят'},
+		status.HTTP_422_UNPROCESSABLE_CONTENT: {'description': 'Данные не валидны'},
+	},
 )
 def register(
 	session: SessionDatabase,
@@ -24,7 +24,7 @@ def register(
 	"""
 	Запрашивает users_service на предмет наличия пользователя с переданным именем.
 	Если пользователь найден, выбрасывает ConflictHTTPException с пояснением.
-	Иначе - проводит регистрацию через auth_service. 
+	Иначе - проводит регистрацию через auth_service.
 	"""
 
 	raise NotImplementedError
@@ -36,9 +36,9 @@ def register(
 	response_model=schema.UserToken,
 	status_code=201,
 	responses={
-		status.HTTP_401_UNAUTHORIZED: { "description": "Некорректное имя или пароль" },
-		status.HTTP_422_UNPROCESSABLE_CONTENT: { "description": "Данные не валидны" }
-	}
+		status.HTTP_401_UNAUTHORIZED: {'description': 'Некорректное имя или пароль'},
+		status.HTTP_422_UNPROCESSABLE_CONTENT: {'description': 'Данные не валидны'},
+	},
 )
 def login(
 	session: SessionDatabase,

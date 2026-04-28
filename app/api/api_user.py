@@ -17,14 +17,14 @@ users_router = APIRouter(
 	summary='Информация о текущем залогиненном пользователе',
 	response_model=schema.UserProfile,
 	responses={
-		status.HTTP_401_UNAUTHORIZED: { "description": "Ошибка токена или пользовательских данных" },
-	}
+		status.HTTP_401_UNAUTHORIZED: {'description': 'Ошибка токена или пользовательских данных'},
+	},
 )
 def get_current(
 	current_user: CurrentUser,
 ) -> schema.UserProfile:
 	"""
-	Получает текущего пользователя через инъекцию зависимостей, в случае 
+	Получает текущего пользователя через инъекцию зависимостей, в случае
 	ошибки выбрасывает CredentialsHTTPException. Иначе - отвечает согласно схеме.
 	"""
 
@@ -37,9 +37,9 @@ def get_current(
 	description='Публичная часть информации о пользователе по юзернейму',
 	response_model=schema.UserProfile,
 	responses={
-		status.HTTP_404_NOT_FOUND: { "description": "Пользователь не найден" },
-		status.HTTP_422_UNPROCESSABLE_CONTENT: { "description": "Юзернейм не валиден" }
-	}
+		status.HTTP_404_NOT_FOUND: {'description': 'Пользователь не найден'},
+		status.HTTP_422_UNPROCESSABLE_CONTENT: {'description': 'Юзернейм не валиден'},
+	},
 )
 def get_by_username(
 	session: SessionDatabase,
