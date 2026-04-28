@@ -1,4 +1,4 @@
-# ![InDreams FastAPI App](logo.png)
+# InDreams FastAPI App
 
 ## Описание
 
