@@ -1,22 +1,30 @@
-from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlite3 import Cursor
 
 from app import schema
-from app.database import models
 
 
-def get_by_username(*, session: Session, username: str) -> models.User | None:
-	return session.scalar(select(models.User).filter_by(username=username))
+def get_by_username(*, cursor: Cursor, username: str) -> schema.UserProfile | None:
+	"""
+	:cursor: курсор подключения к базе данных
+	:username: уникальный юзернейм пользователя
+	
+	Запрашивает пользователя из базы данных. 
+	Если пользователь не найден, возвращает None.
+	Иначе - возвращает запись согласно схеме.
+	"""	
+	
+	raise NotImplemented
 
 
-def update(*, session: Session, db_obj: models.User, obj_in: schema.UserUpdate) -> models.User:
-	db_obj = session.merge(db_obj)
+def update(*, cursor: Cursor, username: int, update_data: schema.UserUpdate) -> schema.UserProfile | None:
+	"""
+	:cursor: курсор подключения к базе данных
+	:username: уникальный юзернейм пользователя
+	:update_data: данные для обновления
+	
+	Запрашивает пользователя из базы данных. 
+	Если пользователь не найден, возвращает None.
+	Иначе - возвращает обновленную запись согласно схеме. 
+	"""	
 
-	db_obj.username = db_obj.username
-	db_obj.bio = obj_in.bio or db_obj.bio
-
-	session.add(db_obj)
-	session.commit()
-	session.refresh(db_obj)
-
-	return db_obj
+	raise NotImplemented

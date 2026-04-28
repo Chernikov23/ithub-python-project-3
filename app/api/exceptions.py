@@ -1,5 +1,6 @@
 from fastapi import HTTPException, status
 
+
 class ConflictHTTPException(HTTPException):
 	def __init__(self, detail: str | None = 'Ошибка при создании записи'):
 		super().__init__(
@@ -25,3 +26,18 @@ class LoginHTTPException(HTTPException):
 			headers={'WWW-Authenticate': 'Bearer'},
 		)
 
+
+class NotFoundHTTPException(HTTPException):
+	def __init__(self, detail: str | None = 'Ресурс не найден'):
+		super().__init__(
+			status_code=status.HTTP_404_NOT_FOUND,
+			detail=detail,
+		)
+
+
+class NotAuthorizedHTTPException(HTTPException):
+	def __init__(self, detail: str | None = 'Недостаточно прав'):
+		super().__init__(
+			status_code=status.HTTP_403_FORBIDDEN,
+			detail=detail,
+		)

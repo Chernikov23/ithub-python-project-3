@@ -1,25 +1,25 @@
 import sqlite3
 from collections.abc import Sequence
 
-from sqlalchemy import Select, func, select
+from sqlalchemy import Select, select
 from sqlalchemy.orm import Session, joinedload
-from sqlalchemy.sql.expression import desc
-from sqlalchemy.exc import IntegrityError
 
 from app import schema
 from app.database import SessionLocal, exceptions, models
 
 
 def get_by_id(session: Session, id: int) -> models.Dream | None:
-	print(id)
-	return session.scalar(
-		select(models.Dream)
-		.options(
-			joinedload(models.Dream.author),
-			joinedload(models.Dream.favorited_by),
-		)
-		.filter_by(id=id)
-	)
+	"""
+	:session: сессия sqlalchemy
+	:id: идентификатор сна
+
+	Возвращает информацию обо сне, подгружая
+	данные об авторе и лайках (favorited_by)
+	из связанных таблиц (например, используя
+	метод joined_load).
+	"""
+
+	raise NotImplementedError
 
 
 def get_list(
@@ -31,66 +31,88 @@ def get_list(
 	search: str | None = None,
 	favorited: str | None = None,
 ) -> tuple[Sequence[models.Dream], int]:
-	query = select(models.Dream).options(
-		joinedload(models.Dream.author),
-		joinedload(models.Dream.favorited_by),
-	)
+	"""
+	:session: сессия sqlalchemy
+	:limit: лимит ответа после фильтрации
+	:offset: отступ ответа после фильтрации
+	:author: фильтр по юзернейму автора
+	:search: поиск по описанию сна
+	:favorited: фильтр по любимым снам юзернейма
 
-	if author:
-		query = query.filter(models.Dream.author.has(models.User.username.ilike(f'%{author}%')))
-	if search:
-		query = query.filter(models.Dream.description.ilike(f'%{search}%'))
-	if favorited:
-		query = query.filter(
-			models.Dream.favorited_by.any(models.User.username.ilike(f'%{favorited}%'))
-		)
+	Получает сны, подгружая данные об авторе 
+	и лайках (favorited_by) из связанных таблиц 
+	(например, используя метод joined_load).
+	
+	Опционально, фильтрует по автору
+		Dream.author.has(User.username.ilike(f'%{author}%')),
+	по описанию 
+		Dream.description.ilike(f'%{search}%')
+	по любимым
+		Dream.favorited_by.any(User.username.ilike(f'%{favorited}%')).
 
-	return get_paginated_list(session=session, limit=limit, offset=offset, query=query)
-
-
-def get_paginated_list(
-	*, session: Session, limit: int, offset: int, query: Select[tuple[models.Dream]]
-) -> tuple[Sequence[models.Dream], int]:
-	query_list = query.order_by(desc(models.Dream.created_at)).limit(limit).offset(offset)
-
-	with SessionLocal() as db_count:
-		query_count = select(func.count()).select_from(query.subquery())
-		Dreams = session.scalars(query_list)
-		count = db_count.scalar(query_count)
-
-	return Dreams.unique().all(), count or 0
+	Подсчитывает количество снов после всех наложенных фильтров.
+	Наконец, возвращает это число вместе с пагинированным результатом. 
+	"""
+	
+	raise NotImplementedError
 
 
-def create(*, session: Session, new_dream: schema.NewDream, author: models.User) -> models.Dream:
-	try:
-		dream_to_create = models.Dream(
-			description=new_dream.description,
-			author_id=author.username,
-		)
 
-		session.add(dream_to_create)
-		session.commit()
-		session.refresh(dream_to_create)
+def create(*, session: Session, new_dream: schema.NewDream, author: schema.UserProfile) -> models.Dream:
+	"""
+	:session: сессия sqlalchemy
+	:new_dream: данные сна для добавления
+	:author: данные об авторе
+	
+	Добавляет новый сон, включая информацию об авторе, в базу данных.
+	В случае, если такой сон уже добавлен, выбрасывает DuplicateDatabaseException.
+	Иначе - возвращает ORM-объект с новым сном.
+	"""
 
-		return dream_to_create
-	except (sqlite3.IntegrityError, IntegrityError):
-		session.rollback()
-		raise exceptions.DuplicateDreamException
+	raise NotImplementedError
+
 
 
 def delete(*, session: Session, dream_id: int) -> None:
-	dream = session.execute(select(models.Dream).where(models.Dream.id == dream_id)).scalar()
-	session.delete(dream)
-	session.commit()
+	"""
+	:session: сессия sqlalchemy
+	:dream_id: идентификатор сна для удаления
+
+	Удаляет сон из базы данных.
+	"""
+	
+	raise NotImplementedError
+
 
 
 def favorite(
-	*, session: Session, dream: models.Dream, user: models.User, favorite: bool = True
+	*, session: Session, dream: models.Dream, user: schema.UserProfile
 ) -> None:
-	if favorite:
-		dream.favorited_by.append(user)
-	else:
-		dream.favorited_by.remove(user)
+	"""
+	:session: сессия sqlalchemy
+	:dream: ORM-модель сна для добавления в любимые
+	:user: данные пользователя, желающего добавить сон в любимые
 
-	session.merge(dream)
-	session.commit()
+	Добавляет запись в посредническую таблицу favorited_by.
+	В случае, если запись в этой таблице уже существует, выбрасывает
+	исключение DuplicateDatabaseException.
+	"""
+	
+	raise NotImplementedError
+
+
+def unfavorite(
+	*, session: Session, dream: models.Dream, user: schema.UserProfile
+) -> None:
+	"""
+	:session: сессия sqlalchemy
+	:dream: ORM-модель сна для добавления в любимые
+	:user: данные пользователя, желающего добавить сон в любимые
+
+	Удаляет запись из посредническую таблицу favorited_by.
+	В случае, если записи в этой таблице не было, выбрасывает
+	исключение NotFoundDatabaseException
+
+	"""
+
+	raise NotImplementedError

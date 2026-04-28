@@ -1,9 +1,9 @@
-from fastapi import APIRouter, HTTPException, Path, Query
+from fastapi import APIRouter, Path, Query, status
 
 from app import schema
-from app.api.exceptions import ConflictHTTPException
+from app.api.exceptions import ConflictHTTPException, NotFoundHTTPException, CredentialsHTTPException
 from app.api.dependencies import CurrentUser, SessionDatabase
-from app.database.exceptions import DuplicateDreamException
+from app.database.exceptions import DuplicateDatabaseException
 from app.services import dreams_service
 
 dreams_router = APIRouter(
@@ -17,8 +17,11 @@ dreams_router = APIRouter(
 	summary='Чтение снов',
 	description='Чтение снов с возможностью поиска, фильтрации, пагинации, с сортировкой по времени добавления',
 	response_model=schema.MultipleDreams,
+	responses={
+		status.HTTP_422_UNPROCESSABLE_CONTENT: { "description": "Параметры запроса не валидные"}	
+	}
 )
-def get_list(
+def get_dreams_list(
 	session: SessionDatabase,
 	limit: int = Query(20, title='Количество снов (по умолчанию 20)'),
 	offset: int = Query(0, title='Величина отступа (по умолчанию  0)'),
@@ -26,18 +29,14 @@ def get_list(
 	search: str = Query(None, title='Поиск по тексту'),
 	favorited: str = Query(None, title='Фильтр по любимым снам юзернейма'),
 ) -> schema.MultipleDreams:
-	result, count = dreams_service.get_list(
-		session=session,
-		limit=limit,
-		offset=offset,
-		author=author,
-		favorited=favorited,
-		search=search,
-	)
-	return schema.MultipleDreams(
-		dreams=[schema.Dream.model_validate(dream) for dream in result],
-		dreams_count=count,
-	)
+	"""
+	Запрашивает dreams_service, возвращает результат согласно схеме.
+	
+	Примечание: здесь и далее при сериализации ответа будет красиво 
+	воспользоваться упомянутым в schema.py методом валидации ORM-слоя
+	"""
+	
+	raise NotImplementedError
 
 
 @dreams_router.post(
@@ -46,32 +45,49 @@ def get_list(
 	description='Добавление сна (требуется авторизация)',
 	response_model=schema.Dream,
 	status_code=201,
+	responses={
+		status.HTTP_401_UNAUTHORIZED: { "description": "Ошибка токена или пользовательских данных" },
+		status.HTTP_409_CONFLICT: { "description": "Пользователь уже добавлял этот сон" },
+		status.HTTP_422_UNPROCESSABLE_CONTENT: { "description": "Данные не валидны" }
+	}
 )
-def create(
+def create_dream(
 	current_user: CurrentUser,
 	session: SessionDatabase,
-	new_dream: schema.NewDream,
+	new_dream_payload: schema.NewDream,
 ) -> schema.Dream:
-	try:
-		dream = dreams_service.create(session=session, new_dream=new_dream, author=current_user)
-		return schema.Dream.model_validate(dream)
-	except DuplicateDreamException:
-		raise ConflictHTTPException("Пользователь уже добавлял этот сон")
+	"""
+	Получает текущего пользователя через инъекцию зависимостей,
+	в случае ошибки выбрасывает CredentialsHTTPException.
+	Иначе - запрашивает dreams_service на создание сна. В случае 
+	ошибки дублирования выбрасывает ConflictHTTPException с пояснением. 
+	Иначе - возвращает результат согласно схеме.	
+	"""
+
+	raise NotImplementedError
 
 
 @dreams_router.get(
 	'/{id}',
 	summary='Чтение сна',
 	response_model=schema.Dream,
+	responses={
+		status.HTTP_401_UNAUTHORIZED: { "description": "Ошибка токена или пользовательских данных" },
+		status.HTTP_404_NOT_FOUND: { "description": "Сон не найден" },
+		status.HTTP_422_UNPROCESSABLE_CONTENT: { "description": "Идентификатор не валиден" }
+	}
 )
-def get(
+def get_dream(
 	session: SessionDatabase,
 	id: int = Path(..., title='Идентификатор сна для чтения'),
 ) -> schema.Dream:
-	dream = dreams_service.get_by_id(session=session, id=id)
-	if not dream:
-		raise HTTPException(status_code=404, detail='No dream found')
-	return schema.Dream.model_validate(dream)
+	"""
+	Запрашивает dreams_service на получение сна по идентификатору.
+	Если сон не найден, выбрасывает NotFoundHTTPException c пояснением.
+	Иначе - возвращает результат согласно схеме
+	"""
+
+	raise NotImplementedError
 
 
 @dreams_router.delete(
@@ -79,21 +95,29 @@ def get(
 	summary='Удаление сна',
 	description='Удаление сна (требуется авторизация для удаления собственных снов и админправа для удаления чужих снов',
 	status_code=204,
+	responses={
+		status.HTTP_401_UNAUTHORIZED: { "description": "Ошибка токена или пользовательских данных" },
+		status.HTTP_404_NOT_FOUND: { "description": "Сон не найден" },
+		status.HTTP_403_FORBIDDEN: { "description": "Пользователь не является автором сна" },
+		status.HTTP_422_UNPROCESSABLE_CONTENT: { "description": "Идентификатор не валиден" }
+	}
 )
 def delete(
 	current_user: CurrentUser,
 	session: SessionDatabase,
 	id: int = Path(..., title='Идентификатор сна для удаления'),
 ) -> None:
-	dream = dreams_service.get_by_id(session=session, id=id)
+	"""
+	Получает текущего пользователя через инъекцию зависимостей,
+	в случае ошибки выбрасывает CredentialsHTTPException.
+	Иначе - запрашивает dreams_service на получение сна по идентификатору.
+	Если сон не найден, выбрасывает NotFoundHTTPException c пояснением.
+	Иначе - проверяет, является ли текущий пользователь автором сна, который
+	он хочет удалить. Если нет - выбрасывает исключение c пояснением.
+	Иначе - запрашивает dreams_service на удаление сна.
+	"""
 
-	if not dream:
-		raise HTTPException(status_code=404, detail='Сон не найден')
-
-	if dream.author != current_user:
-		raise HTTPException(status_code=403, detail='Вы не являетесь автором этого сна')
-
-	dreams_service.delete(session=session, dream_id=id)
+	raise NotImplementedError
 
 
 @dreams_router.post(
@@ -101,18 +125,29 @@ def delete(
 	summary='Добавить сон в любимые',
 	description='Добавить сон в любимые (требуется авторизация)',
 	response_model=schema.Dream,
+	responses={
+		status.HTTP_401_UNAUTHORIZED: { "description": "Ошибка токена или пользовательских данных" },
+		status.HTTP_404_NOT_FOUND: { "description": "Сон не найден" },
+		status.HTTP_409_CONFLICT: { "description": "Сон уже добавлен пользователем в любимые" },
+		status.HTTP_422_UNPROCESSABLE_CONTENT: { "description": "Идентификатор не валиден" }
+	}
 )
 def favorite(
 	current_user: CurrentUser,
 	session: SessionDatabase,
-	id: int = Path(..., title='Идентификатор сна для лайка'),
+	id: int = Path(..., title='Идентификатор сна для добавления в любимые'),
 ) -> schema.Dream:
-	dream = dreams_service.get_by_id(session=session, id=id)
-	if not dream:
-		raise HTTPException(status_code=404, detail='No dream found')
+	"""
+	Получает текущего пользователя через инъекцию зависимостей,
+	в случае ошибки выбрасывает CredentialsHTTPException.
+	Иначе - запрашивает dreams_service на получение сна по идентификатору.
+	Если сон не найден, выбрасывает NotFoundHTTPException c пояснением.
+	Иначе - запрашивает dreams_service на добавление в любимые. Если сон 
+	уже был добавлен пользователем в любимые, выбрасывает ConflictHTTPException
+	c пояснением. Иначе - возвращает измененные данные согласно схеме.
+	"""
 
-	dreams_service.favorite(session=session, dream=dream, user=current_user)
-	return schema.Dream.model_validate(dream)
+	raise NotImplementedError
 
 
 @dreams_router.delete(
@@ -120,15 +155,26 @@ def favorite(
 	summary='Снять лайк',
 	description='Снять лайк со сна (требуется авторизация)',
 	response_model=schema.Dream,
+	responses={
+		status.HTTP_401_UNAUTHORIZED: { "description": "Ошибка токена или пользовательских данных" },
+		status.HTTP_404_NOT_FOUND: { "description": "Сон не найден" },
+		status.HTTP_409_CONFLICT: { "description": "Сон уже добавлен пользователем в любимые" },
+		status.HTTP_422_UNPROCESSABLE_CONTENT: { "description": "Идентификатор не валиден" }
+	}
 )
 def unfavorite(
 	current_user: CurrentUser,
 	session: SessionDatabase,
-	id: int = Path(..., title='Идентификатор сна для снятия лайка'),
+	id: int = Path(..., title='Идентификатор сна для удаления из любимых'),
 ) -> schema.Dream:
-	dream = dreams_service.get_by_id(session=session, id=id)
-	if not dream:
-		raise HTTPException(status_code=404, detail='Сон не найден')
+	"""
+	Получает текущего пользователя через инъекцию зависимостей,
+	в случае ошибки выбрасывает CredentialsHTTPException.
+	Иначе - запрашивает dreams_service на получение сна по идентификатору.
+	Если сон не найден, выбрасывает NotFoundHTTPException c пояснением.
+	Иначе - запрашивает dreams_service на удаление из любимых любимые. Если сон 
+	не был добавлен пользователем в любимые, выбрасывает ConflictHTTPException
+	c пояснением. Иначе - возвращает измененные данные согласно схеме.
+	"""
 
-	dreams_service.favorite(session=session, dream=dream, user=current_user, favorite=False)
-	return schema.Dream.model_validate(dream)
+	raise NotImplementedError

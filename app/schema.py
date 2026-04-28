@@ -6,65 +6,124 @@ from pydantic import ConfigDict, Field, computed_field, field_serializer, field_
 
 
 class BaseModel(PBaseModel):
+	'''
+	Расширенная базовая модель, позволяет 
+	красивее обрабатывать данные ORM-слоя 
+	(правда отдельным методом, который вам 
+	придётся разузнать)
+	'''
+	
 	model_config = ConfigDict(
 		populate_by_name=True, from_attributes=True
 	)
 
 
-class Username(BaseModel):
-	username: str
-
-
-class UserCreate(BaseModel):
-	username: str = Field(min_length=1)
-	password: str = Field(min_length=8)
-	bio: str | None = None
-
-
-class UserUpdate(BaseModel):
-	bio: str | None = None
-
-
-class UserProfile(BaseModel):
-	username: str
-	bio: str | None = None
-
-
 class UserToken(BaseModel):
+	'''
+	Схема Oauth2-токена
+	'''
+	
 	access_token: str
 	token_type: Literal['bearer'] = 'bearer'
 
 
-class Dream(BaseModel):
-	id: int
-	description: str
-	author: UserProfile
-	created_at: datetime
-	favorited_by: list[str]
+class Username(BaseModel):
+	"""
+	Имя пользователя
 
-	@field_validator('favorited_by', mode='before')
-	@classmethod
-	def convert_to_profiles(cls, value):
-		return [Username.model_validate(user).username for user in value]
+	:username: имя пользователя (строка)
+	"""
+
+	pass
+
+
+class UserCreate(BaseModel):
+	"""
+	Создание пользователя
+
+	:username: имя пользователя (строка ненулевой длины)
+	:password: хешированный пароль
+	:bio: биография (опциональное строковое поле) 
+	"""
+
+	pass
+
+
+class UserUpdate(BaseModel):
+	"""
+	Обновление биографии пользователя
+
+	:bio: биография (опциональное строковое поле)
+	"""
+
+	pass
+
+
+class UserProfile(BaseModel):
+	"""
+	Публичная схема пользователя
+
+	:username: имя пользователя
+	:bio: биография (опциональное строковое поле)
+	"""
+
+	pass
+
+
+class NewDream(BaseModel):
+	"""
+	Создание нового сна
+
+	:description: описание сна (строка минимальной длины 5)
+	"""
+
+	pass
+
+
+class Dream(BaseModel):
+	"""
+	Основная схема для операций по снам
+	:id: целочисленный идентификатор
+	:description: тело сна (строка)
+	:author: объект схемы UserProfile
+	:created_at: utc-datetime в ISO-формате
+	:favorited_by: список лайкнувших пользователей (список строк)
+	"""
 
 	@field_validator('author', mode='before')
 	@classmethod
 	def convert_to_profile(cls, value):
-		return UserProfile.model_validate(value)
+		"""
+		в этом классовом методе провалидируйте 
+		value схемой UserProfile
+		"""
+		return value
+	
 
 	@field_serializer('created_at')
 	def convert_created_at(self, created_at: datetime) -> str:
+		"""
+		Сериализатор поля created_at, 
+		изменений не требует
+		"""
 		return created_at.replace(tzinfo=UTC).isoformat().replace('+00:00', 'Z')
+
 
 	@computed_field
 	def favorites_count(self) -> int:
-		return len(self.favorited_by)
-
-
-class NewDream(BaseModel):
-	description: str = Field(min_length=5)
+		'''
+		Из этого вычисляемого поля верните 
+		количество лайкнувших пользователей 
+		'''
+		return 0
 
 
 class MultipleDreams(BaseModel):
-	dreams: list[Dream]
-	dreams_count: int
+	"""
+	Схема для списка снов
+
+	:dreams: список объектов схемы Dream
+	:dreams_count: количество снов подвыборки (целое число)
+	"""
+
+	pass
