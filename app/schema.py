@@ -6,6 +6,13 @@ from pydantic import ConfigDict, Field, field_serializer
 
 
 class BaseModel(PBaseModel):
+	'''
+	Расширенная базовая модель, позволяет 
+	красивее обрабатывать данные ORM-слоя 
+	(правда отдельным методом, который вам 
+	придётся разузнать)
+	'''
+	
 	model_config = ConfigDict(
 		populate_by_name=True, from_attributes=True
 	)
@@ -70,8 +77,6 @@ class NewDream(BaseModel):
 
 class MultipleDreams(BaseModel):
 	"""
-	Схема данных для создания нового сна
-
 	:dreams: список Dream-ов
 	:dreams_count: количество снов в подвыборке, целое число
 	"""

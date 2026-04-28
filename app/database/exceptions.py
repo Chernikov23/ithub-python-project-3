@@ -1,7 +1,12 @@
 import sqlite3
 
 
-class DuplicateDreamException(sqlite3.IntegrityError):
-	def __init__(self):
-		super().__init__('Автор уже публиковал этот сон')
+class DuplicateDatabaseException(sqlite3.IntegrityError):
+	def __init__(self, message: str | None = "Запись уже существует"):
+		super().__init__(message)
+
+
+class NotFoundDatabaseException(sqlite3.IntegrityError):
+	def __init__(self, message: str | None = "Запись не найдена"):
+		super().__init__(message)
 

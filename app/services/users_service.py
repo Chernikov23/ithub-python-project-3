@@ -1,8 +1,16 @@
-from sqlalchemy import select
-from sqlalchemy.orm import Session
-
-from app.database import models
+from sqlite3 import Cursor
+from app import schema
 
 
-def get_by_username(*, session: Session, username: str) -> models.User | None:
-	return session.scalar(select(models.User).filter_by(username=username))
+def get_by_username(*, cursor: Cursor, username: str) -> schema.UserProfile | None:
+	"""
+	:cursor: курсор подключения к базе данных
+	:username: уникальный юзернейм пользователя
+	
+	Запрашивает пользователя из базы данных. 
+	Если пользователь не найден, возвращает None.
+	Иначе - возвращает запись согласно схеме.
+	"""	
+	
+	raise NotImplemented
+
