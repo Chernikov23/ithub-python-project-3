@@ -34,7 +34,6 @@ def main() -> None:
 		user = models.User(
 			username=fake.name(),
 			password=password,
-			bio=fake.paragraph(),
 		)
 		db.add(user)
 
@@ -50,12 +49,6 @@ def main() -> None:
 		)
 
 		dream.author = choice(users)
-
-		for _ in range(fake.random_int(min=0, max=5)):
-			user = choice(users)
-			if user not in dream.favorited_by:
-				dream.favorited_by.append(user)
-
 		db.add(dream)
 
 	db.commit()

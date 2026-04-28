@@ -29,7 +29,6 @@ def session() -> Generator:
 
 		session.execute(delete(models.Dream))
 		session.execute(delete(models.User))
-		session.execute(delete(models.dream_favorite))
 		session.commit()
 
 
@@ -110,7 +109,6 @@ def generate_dreams(session: Session) -> models.User:
 	assert john is not None
 	assert jane is not None
 
-	john_favorited_dreams = [22, 23, 25, 27, 29]
 
 	for i in range(1, 21):
 		dream = models.Dream(
@@ -127,9 +125,6 @@ def generate_dreams(session: Session) -> models.User:
 			id=i,
 			author=jane,
 		)
-
-		if dream.id in john_favorited_dreams:
-			dream.favorited_by.append(john)
 
 		session.add(dream)
 		session.commit()
