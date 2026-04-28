@@ -1,9 +1,10 @@
 from fastapi import APIRouter, status
 
 from app import schema
-from app.api.exceptions import ConflictHTTPException, LoginHTTPException
-from app.api.dependencies import OAuth2Form, SessionDatabase
+from app.api.exceptions import ConflictHTTPException, LoginHTTPException, CredentialsHTTPException, NotFoundHTTPException
+from app.api.dependencies import OAuth2Form, CurrentUser, CursorDatabase
 from app.services import auth_service, users_service
+
 
 auth_router = APIRouter(prefix='/auth', tags=['Аккаунты'])
 
@@ -18,7 +19,7 @@ auth_router = APIRouter(prefix='/auth', tags=['Аккаунты'])
 	},
 )
 def register(
-	session: SessionDatabase,
+	cursor: CursorDatabase,
 	new_user_payload: schema.UserCreate,
 ) -> None:
 	"""
@@ -41,7 +42,7 @@ def register(
 	},
 )
 def login(
-	session: SessionDatabase,
+	cursor: CursorDatabase,
 	user_credentials: OAuth2Form,
 ) -> schema.UserToken:
 	"""
@@ -49,6 +50,25 @@ def login(
 	Если пользователь не найден, выбрасывает LoginHTTPException с пояснением.
 	Иначе - запрашивает аутентификацию через auth_service. Если пароль некорректен,
 	выбрасывает LoginHTTPException с пояснением. Иначе - возвращает токен согласно схеме.
+	"""
+
+	raise NotImplementedError
+
+
+@auth_router.get(
+	'/me',
+	summary='Информация о текущем залогиненном пользователе',
+	response_model=schema.UserProfile,
+	responses={
+		status.HTTP_401_UNAUTHORIZED: {'description': 'Ошибка токена или пользовательских данных'},
+	},
+)
+def get_current(
+	current_user: CurrentUser,
+) -> schema.UserProfile:
+	"""
+	Получает текущего пользователя через инъекцию зависимостей, в случае
+	ошибки выбрасывает CredentialsHTTPException. Иначе - отвечает согласно схеме.
 	"""
 
 	raise NotImplementedError

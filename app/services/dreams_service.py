@@ -14,9 +14,8 @@ def get_by_id(session: Session, id: int) -> models.Dream | None:
 	:id: идентификатор сна
 
 	Возвращает информацию обо сне, подгружая
-	данные об авторе и лайках (favorited_by)
-	из связанных таблиц (например, используя
-	метод joined_load).
+	данные об авторе из связанной таблицы 
+	(например, используя метод joined_load).
 	"""
 
 	raise NotImplementedError
@@ -28,15 +27,12 @@ def get_list(
 	limit: int,
 	offset: int,
 	author: str | None = None,
-	search: str | None = None,
 ) -> tuple[Sequence[models.Dream], int]:
 	"""
 	:session: сессия sqlalchemy
 	:limit: лимит ответа после фильтрации
 	:offset: отступ ответа после фильтрации
 	:author: фильтр по юзернейму автора
-	:search: поиск по описанию сна
-	:favorited: фильтр по любимым снам юзернейма
 
 	Получает сны, подгружая данные об авторе
 	и лайках (favorited_by) из связанных таблиц
@@ -44,10 +40,6 @@ def get_list(
 
 	Опционально, фильтрует по автору
 		Dream.author.has(User.username.ilike(f'%{author}%')),
-	по описанию
-		Dream.description.ilike(f'%{search}%')
-	по любимым
-		Dream.favorited_by.any(User.username.ilike(f'%{favorited}%')).
 
 	Подсчитывает количество снов после всех наложенных фильтров.
 	Наконец, возвращает это число вместе с пагинированным результатом.

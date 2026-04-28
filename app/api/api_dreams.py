@@ -30,7 +30,6 @@ def get_dreams_list(
 	limit: int = Query(20, title='Количество снов (по умолчанию 20)'),
 	offset: int = Query(0, title='Величина отступа (по умолчанию  0)'),
 	author: str = Query(None, title='Фильтр по юзернейму автора'),
-	search: str = Query(None, title='Поиск по тексту'),
 ) -> schema.MultipleDreams:
 	"""
 	Запрашивает dreams_service, возвращает результат согласно схеме.
