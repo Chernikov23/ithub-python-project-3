@@ -9,10 +9,10 @@
   },
   "item": [
     {
-      "name": "Unauthorized",
+      "name": "Отсутствие авторизации",
       "item": [
         {
-          "name": "Favorite Dream",
+          "name": "Добавление сна в любимые",
           "event": [
             {
               "listen": "test",
@@ -59,7 +59,7 @@
           "response": []
         },
         {
-          "name": "Unfavorite Dream",
+          "name": "Удаление сна из любимых",
           "event": [
             {
               "listen": "test",
@@ -106,7 +106,7 @@
           "response": []
         },
         {
-          "name": "Create Dream",
+          "name": "Создание сна",
           "event": [
             {
               "listen": "test",
@@ -151,7 +151,7 @@
           "response": []
         },
         {
-          "name": "Delete Dream",
+          "name": "Удаление сна",
           "event": [
             {
               "listen": "test",
@@ -201,7 +201,7 @@
           "response": []
         },
         {
-          "name": "Current User",
+          "name": "Текущий пользователь",
           "event": [
             {
               "listen": "test",
@@ -249,10 +249,10 @@
       ]
     },
     {
-      "name": "Auth",
+      "name": "Аутентификация / Авторизация",
       "item": [
         {
-          "name": "Register",
+          "name": "Регистрация",
           "event": [
             {
               "listen": "test",
@@ -308,7 +308,7 @@
           "response": []
         },
         {
-          "name": "Login",
+          "name": "Логин",
           "event": [
             {
               "listen": "test",
@@ -386,7 +386,7 @@
           "response": []
         },
         {
-          "name": "Login and Remember Token",
+          "name": "Логин с сохранением токена",
           "event": [
             {
               "listen": "test",
@@ -468,10 +468,10 @@
       ]
     },
     {
-      "name": "Dreams",
+      "name": "Сны",
       "item": [
         {
-          "name": "All Dreams",
+          "name": "Все сны",
           "event": [
             {
               "listen": "test",
@@ -565,7 +565,7 @@
           "response": []
         },
         {
-          "name": "Create Dream",
+          "name": "Создание сна",
           "event": [
             {
               "listen": "test",
@@ -667,7 +667,7 @@
           "response": []
         },
         {
-          "name": "Single Dream by id",
+          "name": "Получение сна по id",
           "event": [
             {
               "listen": "test",
@@ -751,7 +751,7 @@
           "response": []
         },
         {
-          "name": "Dreams by Author",
+          "name": "Фильтрация снов по автору",
           "event": [
             {
               "listen": "test",
@@ -858,7 +858,7 @@
           "response": []
         },
         {
-          "name": "Favorite Dream",
+          "name": "Добавление сна в любимые",
           "event": [
             {
               "listen": "test",
@@ -932,7 +932,7 @@
           "response": []
         },
         {
-          "name": "Dreams Favorited by Username",
+          "name": "Любимые сны по юзернейму",
           "event": [
             {
               "listen": "test",
@@ -1036,7 +1036,7 @@
           "response": []
         },
         {
-          "name": "Unfavorite Dream",
+          "name": "Удаление сна из любимых",
           "event": [
             {
               "listen": "test",
@@ -1109,7 +1109,7 @@
           "response": []
         },
         {
-          "name": "Delete Dream",
+          "name": "Удаление сна",
           "event": [
             {
               "listen": "test",
@@ -1161,10 +1161,10 @@
       ]
     },
     {
-      "name": "Users",
+      "name": "Пользователи",
       "item": [
         {
-          "name": "Profile",
+          "name": "Получение пользователя по юзернейму",
           "event": [
             {
               "listen": "test",
@@ -1221,7 +1221,7 @@
           "response": []
         },
         {
-          "name": "Current User",
+          "name": "Текущий пользователь",
           "event": [
             {
               "listen": "test",
@@ -1279,7 +1279,7 @@
           "response": []
         },
         {
-          "name": "Update User",
+          "name": "Обновление биографии пользователя",
           "event": [
             {
               "listen": "test",
