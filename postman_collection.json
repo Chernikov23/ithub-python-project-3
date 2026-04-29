@@ -1,11 +1,11 @@
 {
   "info": {
-    "_postman_id": "9871fe36-27d1-41c6-88b4-3b82020a9e6c",
+    "_postman_id": "364e2d88-e520-4b7b-b68b-8e999390171e",
     "name": "InDreams (Simplified)",
     "description": "Коллекция для тестирования InDreams API \n\nhttps://github.com/ITHUB-SPB/ithub-python-project-3",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "6387549",
-    "_collection_link": "https://go.postman.co/collection/6387549-9871fe36-27d1-41c6-88b4-3b82020a9e6c?source=collection_link"
+    "_collection_link": "https://go.postman.co/collection/6387549-364e2d88-e520-4b7b-b68b-8e999390171e?source=collection_link"
   },
   "item": [
     {
@@ -220,8 +220,8 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Код ответа 200 OK', () => {",
-                  "    pm.response.to.have.status(200);",
+                  "pm.test('Код ответа 201 CREATED', () => {",
+                  "    pm.response.to.have.status(201);",
                   "})",
                   "",
                   "",
@@ -298,8 +298,8 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Код ответа 200 OK', () => {",
-                  "    pm.response.to.have.status(200);",
+                  "pm.test('Код ответа 201 CREATED', () => {",
+                  "    pm.response.to.have.status(201);",
                   "})",
                   "",
                   "var token = pm.response.json() || {};",
@@ -309,7 +309,6 @@
                   "    pm.expect(token.access_token).to.be.a('string');",
                   "",
                   "    pm.globals.set('token', token.access_token);",
-                  "    pm.globals.set('USERNAME', pm.request.body.formdata.get('username'));",
                   "})"
                 ],
                 "type": "text/javascript",
