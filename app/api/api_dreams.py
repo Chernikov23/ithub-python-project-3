@@ -74,7 +74,6 @@ def create_dream(
 	summary='Чтение сна',
 	response_model=schema.Dream,
 	responses={
-		status.HTTP_401_UNAUTHORIZED: {'description': 'Ошибка токена или пользовательских данных'},
 		status.HTTP_404_NOT_FOUND: {'description': 'Сон не найден'},
 		status.HTTP_422_UNPROCESSABLE_CONTENT: {'description': 'Идентификатор не валиден'},
 	},

@@ -9,10 +9,10 @@
   },
   "item": [
     {
-      "name": "Unauthorized",
+      "name": "Отсутствие авторизации",
       "item": [
         {
-          "name": "Create Dream",
+          "name": "Создание сна",
           "event": [
             {
               "listen": "test",
@@ -57,7 +57,7 @@
           "response": []
         },
         {
-          "name": "Delete Dream",
+          "name": "Удаление сна",
           "event": [
             {
               "listen": "test",
@@ -107,7 +107,7 @@
           "response": []
         },
         {
-          "name": "Current User",
+          "name": "Текущий пользователь",
           "event": [
             {
               "listen": "test",
@@ -140,12 +140,12 @@
               }
             ],
             "url": {
-              "raw": "{{API_URL}}/users/me",
+              "raw": "{{API_URL}}/auth/me",
               "host": [
                 "{{API_URL}}"
               ],
               "path": [
-                "users",
+                "auth",
                 "me"
               ]
             }
@@ -155,10 +155,10 @@
       ]
     },
     {
-      "name": "Auth",
+      "name": "Аутентификация и авторизация",
       "item": [
         {
-          "name": "Register",
+          "name": "Регистрация",
           "event": [
             {
               "listen": "test",
@@ -214,7 +214,7 @@
           "response": []
         },
         {
-          "name": "Login",
+          "name": "Логин",
           "event": [
             {
               "listen": "test",
@@ -292,7 +292,7 @@
           "response": []
         },
         {
-          "name": "Login and Remember Token",
+          "name": "Логин с запоминанием токенов",
           "event": [
             {
               "listen": "test",
@@ -370,14 +370,68 @@
             }
           },
           "response": []
+        },
+        {
+          "name": "Текущий пользователь",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Код ответа 200 OK', () => {",
+                  "    pm.response.to.have.status(200);",
+                  "})",
+                  "",
+                  "var user = pm.response.json() || {};",
+                  "",
+                  "pm.test('Содержит строковое поле \"username\"', () => {",
+                  "    pm.expect(user).to.haveOwnProperty('username');",
+                  "    pm.expect(user.username).to.be.a('string');",
+                  "})",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Requested-With",
+                "value": "XMLHttpRequest"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{API_URL}}/auth/me",
+              "host": [
+                "{{API_URL}}"
+              ],
+              "path": [
+                "auth",
+                "me"
+              ]
+            }
+          },
+          "response": []
         }
       ]
     },
     {
-      "name": "Dreams",
+      "name": "Сны",
       "item": [
         {
-          "name": "All Dreams",
+          "name": "Все сны",
           "event": [
             {
               "listen": "test",
@@ -455,7 +509,7 @@
           "response": []
         },
         {
-          "name": "Create Dream",
+          "name": "Создание сна",
           "event": [
             {
               "listen": "test",
@@ -542,7 +596,7 @@
           "response": []
         },
         {
-          "name": "Single Dream by id",
+          "name": "Получение сна по id",
           "event": [
             {
               "listen": "test",
@@ -610,7 +664,7 @@
           "response": []
         },
         {
-          "name": "Dreams by Author",
+          "name": "Фильтрация снов по автору",
           "event": [
             {
               "listen": "test",
@@ -701,7 +755,7 @@
           "response": []
         },
         {
-          "name": "Delete Dream",
+          "name": "Удаление сна",
           "event": [
             {
               "listen": "test",
@@ -745,119 +799,6 @@
               "path": [
                 "dreams",
                 "{{id}}"
-              ]
-            }
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "Users",
-      "item": [
-        {
-          "name": "Profile",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Код ответа 200 OK', () => {",
-                  "    pm.response.to.have.status(200);",
-                  "})",
-                  "",
-                  "var profile = pm.response.json() || {};",
-                  "",
-                  "pm.test('Содержит строковое поле \"username\"', () => {",
-                  "    pm.expect(profile).to.haveOwnProperty('username');",
-                  "    pm.expect(profile.username).to.be.a('string');",
-                  "})",
-                  ""
-                ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "X-Requested-With",
-                "value": "XMLHttpRequest"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
-            "url": {
-              "raw": "{{API_URL}}/users/{{USERNAME}}",
-              "host": [
-                "{{API_URL}}"
-              ],
-              "path": [
-                "users",
-                "{{USERNAME}}"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Current User",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Код ответа 200 OK', () => {",
-                  "    pm.response.to.have.status(200);",
-                  "})",
-                  "",
-                  "var user = pm.response.json() || {};",
-                  "",
-                  "pm.test('Содержит строковое поле \"username\"', () => {",
-                  "    pm.expect(user).to.haveOwnProperty('username');",
-                  "    pm.expect(user.username).to.be.a('string');",
-                  "})",
-                  ""
-                ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "X-Requested-With",
-                "value": "XMLHttpRequest"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
-            "url": {
-              "raw": "{{API_URL}}/users/me",
-              "host": [
-                "{{API_URL}}"
-              ],
-              "path": [
-                "users",
-                "me"
               ]
             }
           },
