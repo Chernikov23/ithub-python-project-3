@@ -30,6 +30,7 @@ def test_can_get_dream(client: TestClient, session: Session) -> None:
 		'author': {
 			'username': 'john.doe',
 			'bio': None,
+			'role': 'user'
 		},
 		'favorited_by': [],
 		'favorites_count': 0,

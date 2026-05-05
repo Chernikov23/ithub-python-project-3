@@ -29,12 +29,10 @@ def register(
 	Иначе - проводит регистрацию через auth_service. 
 	"""
 
-	cursor = session.get_bind().raw_connection().cursor()
-
-	if get_by_username(cursor=cursor, username=new_user_payload.username):
+	if get_by_username(session=session, username=new_user_payload.username):
 		raise ConflictHTTPException('Выбранный юзернейм занят')
 
-	authsvc.register(cursor=cursor, user_data=new_user_payload)
+	authsvc.register(session=session, user_data=new_user_payload)
 
 
 @auth_router.post(
@@ -58,14 +56,12 @@ def login(
 	выбрасывает LoginHTTPException с пояснением. Иначе - возвращает токен согласно схеме.
 	"""
 
-	cursor: Cursor = session.get_bind().raw_connection().cursor()
-
-	user = get_by_username(cursor=cursor, username=user_credentials.username)
+	user = get_by_username(session=session, username=user_credentials.username)
 
 	if not user:
 		raise LoginHTTPException()
 	
-	token = authsvc.authenticate(cursor=cursor, user_data=schema.UserCreate(username=user.username,
+	token = authsvc.authenticate(session=session, user_data=schema.UserCreate(username=user.username,
 																		 password=user_credentials.password,
 																		 role=user.role))
 	

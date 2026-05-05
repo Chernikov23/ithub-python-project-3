@@ -5,9 +5,9 @@ from pydantic import BaseModel as PBaseModel
 from pydantic import ConfigDict, computed_field, field_serializer, field_validator, StringConstraints, AfterValidator, Field
 
 
-UsernameType = Annotated[str, StringConstraints(strip_whitespace=True, min_length=3, max_length=32, to_lower=True, pattern=r"^[a-zA-Z0-9.]+$")]
+UsernameType = Annotated[str, StringConstraints(strip_whitespace=True, min_length=3, max_length=32, to_lower=True, pattern=r"^[a-zA-Z0-9._-]+$")]
 PasswordType = Annotated[str, StringConstraints(min_length=8, max_length=32, pattern=r"^[a-zA-Z0-9!@#$%&?.]+$")]
-BioType = Annotated[str, StringConstraints(min_length=5, max_length=2048, strip_whitespace=True, pattern=r"^[a-zA-Zа-яА-Я0-9'\".,!@#$%&*()-_=+/~— ]+$")]
+BioType = Annotated[Optional[str], StringConstraints(min_length=0, max_length=2048, strip_whitespace=True, pattern=r"^[a-zA-Zа-яА-Я0-9'\".,!@#$%&*()-_=+/~— ]+$")]
 DreamDescriptionType = Annotated[str, StringConstraints(min_length=5, max_length=16384, strip_whitespace=True, pattern=r"^[a-zA-Zа-яА-Я0-9'\".,!@#$%&*()-_=+/~— ]+$")]
 DatetimeType = Annotated[str, StringConstraints(pattern=r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$")]
 UintType = Annotated[int, Field(ge=0)]
@@ -108,7 +108,7 @@ class Dream(BaseModel):
 	description: DreamDescriptionType
 	author: UserProfile
 	created_at: DatetimeType
-	favourited_by: list[Username]
+	favorited_by: list[Username]
 
 	@field_validator('author', mode='before')
 	@classmethod
@@ -120,12 +120,12 @@ class Dream(BaseModel):
 
 	@field_serializer('created_at')
 	def convert_created_at(self, created_at: datetime) -> str:
-		return created_at.replace(tzinfo=UTC).isoformat().replace('+00:00', 'Z')
+		return datetime.fromisoformat(created_at).isoformat() + 'Z'
 
 
 	@computed_field
 	def favorites_count(self) -> int:
-		return len(self.favourited_by)
+		return len(self.favorited_by)
 
 
 class MultipleDreams(BaseModel):

@@ -1,27 +1,44 @@
-from sqlite3 import Cursor, IntegrityError
+from sqlalchemy.orm import Session
+from sqlalchemy import text
+from sqlalchemy.exc import IntegrityError
 import app.security as security
 
 from app import schema
 
-def register(*, cursor: Cursor, user_data: schema.UserCreate) -> bool:
+def register(*, session: Session, user_data: schema.UserCreate) -> bool:
 	"""
-	:cursor: курсор подключения к базе данных
+	:session: сессия подключения к базе данных
 	:user_data: данные для регистрации
 
 	Добавляет пользователя в базу данных (хешируя пароль)
 	"""
 
 	try:
-		cursor.execute('INSERT INTO users (username, password, bio, role) VALUES (?, ?, ?, \'user\');',
-					(user_data.username, security.get_password_hash(user_data.password), user_data.bio))
-		cursor.connection.commit()
+		session.execute(
+			text('INSERT INTO users (username, password, bio, role) VALUES (:username, :password, :bio, \'user\');'),
+			{'username': user_data.username, 'password': security.get_password_hash(user_data.password), 'bio': user_data.bio}
+		)
+		session.commit()
 	except IntegrityError:
+		session.rollback()
 		return False
 	
 	return True
 
+def set_role(*, session: Session, username: schema.UsernameType, role: schema.RoleType) -> bool:
+	try:
+		session.execute(
+			text('UPDATE users SET role = :role WHERE username = :username;'),
+			{'username': username, 'role': role}
+		)
+		session.commit()
+	except IntegrityError:
+		session.rollback()
+		return False
+	
+	return True
 
-def authenticate(*, cursor: Cursor, user_data: schema.UserCreate) -> str | None:
+def authenticate(*, session: Session, user_data: schema.UserCreate) -> str | None:
 	"""
 	Находит пользователя по юзернейму, 
 	сверяет хеш переданного пароля с истинным. 
@@ -29,12 +46,15 @@ def authenticate(*, cursor: Cursor, user_data: schema.UserCreate) -> str | None:
 	Иначе - создает и возвращает токен доступа.
 	"""
 
-	hash = cursor.execute('SELECT password FROM users WHERE username = ?;', (user_data.username,)).fetchone()
+	result = session.execute(
+		text('SELECT password FROM users WHERE username = :username;'),
+		{'username': user_data.username}
+	).fetchone()
 
-	if not hash:
+	if not result:
 		return None
 	
-	if not security.verify_password(user_data.password, hash[0]):
+	if not security.verify_password(user_data.password, result[0]):
 		return None
 	
 	return security.create_access_token(user_data.username)

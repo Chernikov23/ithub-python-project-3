@@ -51,9 +51,7 @@ def get_by_username(
 	пояснением. Иначе - отвечает согласно схеме.
 	"""
 
-	cursor: Cursor = session.get_bind().raw_connection().cursor()
-
-	user = usersvc.get_by_username(cursor=cursor, username=username)
+	user = usersvc.get_by_username(session=session, username=username)
 
 	if not user:
 		raise NotFoundHTTPException('Имя пользователя не найдено.')
@@ -85,9 +83,7 @@ def update_current(
 	ответ согласно схеме.
 	"""
 
-	cursor: Cursor = session.get_bind().raw_connection().cursor()
-
-	user = usersvc.update(cursor=cursor, username=current_user.username, update_data=update_user_payload)
+	user = usersvc.update(session=session, username=current_user.username, update_data=update_user_payload)
 
 	if not user:
 		raise NotFoundHTTPException()

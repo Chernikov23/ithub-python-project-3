@@ -1,11 +1,14 @@
-from sqlite3 import Cursor
+from sqlalchemy.orm import Session
+from sqlalchemy import text
+
+from app.database import models
 
 from app import schema
 
 
-def get_by_username(*, cursor: Cursor, username: str) -> schema.UserProfile | None:
+def get_by_username(*, session: Session, username: str) -> schema.UserProfile | None:
 	"""
-	:cursor: курсор подключения к базе данных
+	:session: сессия подключения к базе данных
 	:username: уникальный юзернейм пользователя
 	
 	Запрашивает пользователя из базы данных. 
@@ -13,17 +16,40 @@ def get_by_username(*, cursor: Cursor, username: str) -> schema.UserProfile | No
 	Иначе - возвращает запись согласно схеме.
 	"""	
 	
-	user = cursor.execute('SELECT username, role, bio FROM users WHERE username = ?;', (username,)).fetchone()
+	user = session.execute(
+		text('SELECT username, role, bio FROM users WHERE username = :username;'),
+		{'username': username}
+	).fetchone()
 
 	if not user:
 		return None
 	
 	return schema.UserProfile(username=user[0], role=user[1], bio=user[2])
 
-
-def update(*, cursor: Cursor, username: str, update_data: schema.UserUpdate) -> schema.UserProfile | None:
+def get_by_username_orm(*, session: Session, username: str) -> models.User | None:
 	"""
-	:cursor: курсор подключения к базе данных
+	:session: сессия подключения к базе данных
+	:username: уникальный юзернейм пользователя
+	
+	Запрашивает пользователя из базы данных. 
+	Если пользователь не найден, возвращает None.
+	Иначе - возвращает запись согласно схеме.
+	"""	
+	
+	user = session.execute(
+		text('SELECT username, role, bio FROM users WHERE username = :username;'),
+		{'username': username}
+	).fetchone()
+
+	if not user:
+		return None
+	
+	return models.User(username=user[0], role=user[1], bio=user[2], password='')
+
+
+def update(*, session: Session, username: str, update_data: schema.UserUpdate) -> schema.UserProfile | None:
+	"""
+	:session: сессия подключения к базе данных
 	:username: уникальный юзернейм пользователя
 	:update_data: данные для обновления
 	
@@ -33,10 +59,14 @@ def update(*, cursor: Cursor, username: str, update_data: schema.UserUpdate) -> 
 	"""	
 
 	
-	updated = cursor.execute('UPDATE users SET bio = ? WHERE username = ?;',
-				(update_data.bio, username)).rowcount > 0
+	result = session.execute(
+		text('UPDATE users SET bio = :bio WHERE username = :username;'),
+		{'bio': update_data.bio, 'username': username}
+	)
+	
+	updated = result.rowcount > 0
 	
 	if updated:
-		cursor.connection.commit()
+		session.commit()
 	
-	return schema.UserProfile(username=username, bio=update_data.bio) if updated else None
+	return schema.UserProfile(username=username, bio=update_data.bio, role='user') if updated else None

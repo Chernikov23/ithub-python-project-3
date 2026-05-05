@@ -44,12 +44,12 @@ SessionDatabase = Annotated[Session, Depends(_get_db_sa)]
 
 
 def _get_current_user(
-	cursor: CursorDatabase,
+	session: SessionDatabase,
 	token: TokenDependency,
 ) -> schema.UserProfile:
 	try:
 		username = security.decode_access_token(token)
-		user = users_service.get_by_username(cursor=cursor, username=username)
+		user = users_service.get_by_username(session=session, username=username)
 		if not user:
 			raise NotFoundHTTPException(detail='Пользователь не найден')
 		return user

@@ -3,6 +3,7 @@ from fastapi import APIRouter, Path, Query, status
 from app import schema
 from app.api.dependencies import CurrentUser, SessionDatabase
 from app.api.exceptions import *
+from app.database.exceptions import *
 from app.services import dreams_service as dreamsvc
 
 dreams_router = APIRouter(
@@ -66,10 +67,10 @@ def create_dream(
 	Иначе - возвращает результат согласно схеме.	
 	"""
 
-	dream = dreamsvc.create(session=session, new_dream=new_dream_payload, author=current_user)
-
-	return dream
-
+	try:
+		return dreamsvc.create(session=session, new_dream=new_dream_payload, author=current_user)
+	except DuplicateDatabaseException:
+		raise ConflictHTTPException('Сон с таким описанием уже существует.')
 
 @dreams_router.get(
 	'/{id}',
@@ -130,7 +131,7 @@ def delete(
 	if not dream:
 		raise NotFoundHTTPException('Сон не найден.')
 	
-	if dream.author_id != current_user.username and current_user.role != 'superuser':
+	if dream.author.username != current_user.username and current_user.role != 'superuser':
 		raise AccessDeniedHTTPException()
 
 	dreamsvc.delete(session=session, dream_id=id)
@@ -169,7 +170,7 @@ def favorite(
 	
 	dreamsvc.favorite(session=session, dream=dream, user=current_user)
 
-	return dream
+	return dreamsvc.get_by_id(session=session, id=id)
 
 
 @dreams_router.delete(
@@ -206,4 +207,4 @@ def unfavorite(
 	
 	dreamsvc.unfavorite(session=session, dream=dream, user=current_user)
 
-	return dream
+	return dreamsvc.get_by_id(session=session, id=id)

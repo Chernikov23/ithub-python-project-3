@@ -1,1404 +1,28 @@
 ============================= test session starts =============================
 platform win32 -- Python 3.14.0, pytest-9.0.3, pluggy-1.6.0
-rootdir: E:\Indev\ithub-python-project-3
+rootdir: D:\Indev\ithub-python-project-3
 configfile: pyproject.toml
 plugins: anyio-4.13.0, Faker-40.15.0
 collected 34 items
 
 tests\api\auth\test_login_user.py ...                                    [  8%]
 tests\api\auth\test_register_user.py ......                              [ 26%]
-tests\api\dreams\test_dreams_create.py ...FFE                            [ 41%]
-tests\api\dreams\test_dreams_delete.py EEEEE                             [ 55%]
-tests\api\dreams\test_dreams_favorite.py E
+tests\api\dreams\test_dreams_create.py ...FF                             [ 41%]
+tests\api\dreams\test_dreams_delete.py ...FF                             [ 55%]
+tests\api\dreams\test_dreams_favorite.py ..FF                            [ 67%]
+tests\api\dreams\test_dreams_get.py .F                                   [ 73%]
+tests\api\dreams\test_dreams_list.py FFF                                 [ 82%]
+tests\api\users\test_current_user.py ..                                  [ 88%]
+tests\api\users\test_update_user.py ..                                   [ 94%]
+tests\api\users\test_user_get.py ..                                      [100%]
 
-=================================== ERRORS ====================================
-_________________ ERROR at teardown of test_can_create_dream __________________
-
-self = <sqlalchemy.engine.base.Connection object at 0x00000284743F5F40>
-dialect = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x0000028471EB11D0>
-context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x00000284720539B0>
-statement = <sqlalchemy.dialects.sqlite.base.SQLiteCompiler object at 0x0000028472102710>
-parameters = [()]
-
-    def _exec_single_context(
-        self,
-        dialect: Dialect,
-        context: ExecutionContext,
-        statement: Union[str, Compiled],
-        parameters: Optional[_AnyMultiExecuteParams],
-    ) -> CursorResult[Any]:
-        """continue the _execute_context() method for a single DBAPI
-        cursor.execute() or cursor.executemany() call.
-    
-        """
-        if dialect.bind_typing is BindTyping.SETINPUTSIZES:
-            generic_setinputsizes = context._prepare_set_input_sizes()
-    
-            if generic_setinputsizes:
-                try:
-                    dialect.do_set_input_sizes(
-                        context.cursor, generic_setinputsizes, context
-                    )
-                except BaseException as e:
-                    self._handle_dbapi_exception(
-                        e, str(statement), parameters, None, context
-                    )
-    
-        cursor, str_statement, parameters = (
-            context.cursor,
-            context.statement,
-            context.parameters,
-        )
-    
-        effective_parameters: Optional[_AnyExecuteParams]
-    
-        if not context.executemany:
-            effective_parameters = parameters[0]
-        else:
-            effective_parameters = parameters
-    
-        if self._has_events or self.engine._has_events:
-            for fn in self.dispatch.before_cursor_execute:
-                str_statement, effective_parameters = fn(
-                    self,
-                    cursor,
-                    str_statement,
-                    effective_parameters,
-                    context,
-                    context.executemany,
-                )
-    
-        if self._echo:
-            self._log_info(str_statement)
-    
-            stats = context._get_cache_stats()
-    
-            if not self.engine.hide_parameters:
-                self._log_info(
-                    "[%s] %r",
-                    stats,
-                    sql_util._repr_params(
-                        effective_parameters,
-                        batches=10,
-                        ismulti=context.executemany,
-                    ),
-                )
-            else:
-                self._log_info(
-                    "[%s] [SQL parameters hidden due to hide_parameters=True]",
-                    stats,
-                )
-    
-        evt_handled: bool = False
-        try:
-            if context.execute_style is ExecuteStyle.EXECUTEMANY:
-                effective_parameters = cast(
-                    "_CoreMultiExecuteParams", effective_parameters
-                )
-                if self.dialect._has_events:
-                    for fn in self.dialect.dispatch.do_executemany:
-                        if fn(
-                            cursor,
-                            str_statement,
-                            effective_parameters,
-                            context,
-                        ):
-                            evt_handled = True
-                            break
-                if not evt_handled:
-                    self.dialect.do_executemany(
-                        cursor,
-                        str_statement,
-                        effective_parameters,
-                        context,
-                    )
-            elif not effective_parameters and context.no_parameters:
-                if self.dialect._has_events:
-                    for fn in self.dialect.dispatch.do_execute_no_params:
-                        if fn(cursor, str_statement, context):
-                            evt_handled = True
-                            break
-                if not evt_handled:
-                    self.dialect.do_execute_no_params(
-                        cursor, str_statement, context
-                    )
-            else:
-                effective_parameters = cast(
-                    "_CoreSingleExecuteParams", effective_parameters
-                )
-                if self.dialect._has_events:
-                    for fn in self.dialect.dispatch.do_execute:
-                        if fn(
-                            cursor,
-                            str_statement,
-                            effective_parameters,
-                            context,
-                        ):
-                            evt_handled = True
-                            break
-                if not evt_handled:
->                   self.dialect.do_execute(
-                        cursor, str_statement, effective_parameters, context
-                    )
-
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:1967: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-self = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x0000028471EB11D0>
-cursor = <sqlite3.Cursor object at 0x0000028472B6FA40>
-statement = 'DELETE FROM dreams', parameters = ()
-context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x00000284720539B0>
-
-    def do_execute(self, cursor, statement, parameters, context=None):
->       cursor.execute(statement, parameters)
-E       sqlite3.OperationalError: database is locked
-
-.venv\Lib\site-packages\sqlalchemy\engine\default.py:952: OperationalError
-
-The above exception was the direct cause of the following exception:
-
-    @pytest.fixture(scope='function')
-    def session() -> Generator:
-    	with TestingSessionLocal() as session:
-    		Base.metadata.create_all(bind=engine)
-    
-    		yield session
-    
->   		session.execute(delete(models.Dream))
-
-tests\conftest.py:30: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-.venv\Lib\site-packages\sqlalchemy\orm\session.py:2351: in execute
-    return self._execute_internal(
-.venv\Lib\site-packages\sqlalchemy\orm\session.py:2249: in _execute_internal
-    result: Result[Any] = compile_state_cls.orm_execute_statement(
-.venv\Lib\site-packages\sqlalchemy\orm\bulk_persistence.py:2033: in orm_execute_statement
-    return super().orm_execute_statement(
-.venv\Lib\site-packages\sqlalchemy\orm\context.py:306: in orm_execute_statement
-    result = conn.execute(
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:1419: in execute
-    return meth(
-.venv\Lib\site-packages\sqlalchemy\sql\elements.py:527: in _execute_on_connection
-    return connection._execute_clauseelement(
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:1641: in _execute_clauseelement
-    ret = self._execute_context(
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:1846: in _execute_context
-    return self._exec_single_context(
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:1986: in _exec_single_context
-    self._handle_dbapi_exception(
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:2363: in _handle_dbapi_exception
-    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:1967: in _exec_single_context
-    self.dialect.do_execute(
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-self = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x0000028471EB11D0>
-cursor = <sqlite3.Cursor object at 0x0000028472B6FA40>
-statement = 'DELETE FROM dreams', parameters = ()
-context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x00000284720539B0>
-
-    def do_execute(self, cursor, statement, parameters, context=None):
->       cursor.execute(statement, parameters)
-E       sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) database is locked
-E       [SQL: DELETE FROM dreams]
-E       (Background on this error at: https://sqlalche.me/e/20/e3q8)
-
-.venv\Lib\site-packages\sqlalchemy\engine\default.py:952: OperationalError
-______________ ERROR at setup of test_guest_cannot_delete_dream _______________
-
-self = <sqlalchemy.engine.base.Connection object at 0x00000284743F7E30>
-dialect = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x0000028471EB11D0>
-context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x000002847215C7C0>
-statement = 'PRAGMA main.table_info("dream_favorite")', parameters = [()]
-
-    def _exec_single_context(
-        self,
-        dialect: Dialect,
-        context: ExecutionContext,
-        statement: Union[str, Compiled],
-        parameters: Optional[_AnyMultiExecuteParams],
-    ) -> CursorResult[Any]:
-        """continue the _execute_context() method for a single DBAPI
-        cursor.execute() or cursor.executemany() call.
-    
-        """
-        if dialect.bind_typing is BindTyping.SETINPUTSIZES:
-            generic_setinputsizes = context._prepare_set_input_sizes()
-    
-            if generic_setinputsizes:
-                try:
-                    dialect.do_set_input_sizes(
-                        context.cursor, generic_setinputsizes, context
-                    )
-                except BaseException as e:
-                    self._handle_dbapi_exception(
-                        e, str(statement), parameters, None, context
-                    )
-    
-        cursor, str_statement, parameters = (
-            context.cursor,
-            context.statement,
-            context.parameters,
-        )
-    
-        effective_parameters: Optional[_AnyExecuteParams]
-    
-        if not context.executemany:
-            effective_parameters = parameters[0]
-        else:
-            effective_parameters = parameters
-    
-        if self._has_events or self.engine._has_events:
-            for fn in self.dispatch.before_cursor_execute:
-                str_statement, effective_parameters = fn(
-                    self,
-                    cursor,
-                    str_statement,
-                    effective_parameters,
-                    context,
-                    context.executemany,
-                )
-    
-        if self._echo:
-            self._log_info(str_statement)
-    
-            stats = context._get_cache_stats()
-    
-            if not self.engine.hide_parameters:
-                self._log_info(
-                    "[%s] %r",
-                    stats,
-                    sql_util._repr_params(
-                        effective_parameters,
-                        batches=10,
-                        ismulti=context.executemany,
-                    ),
-                )
-            else:
-                self._log_info(
-                    "[%s] [SQL parameters hidden due to hide_parameters=True]",
-                    stats,
-                )
-    
-        evt_handled: bool = False
-        try:
-            if context.execute_style is ExecuteStyle.EXECUTEMANY:
-                effective_parameters = cast(
-                    "_CoreMultiExecuteParams", effective_parameters
-                )
-                if self.dialect._has_events:
-                    for fn in self.dialect.dispatch.do_executemany:
-                        if fn(
-                            cursor,
-                            str_statement,
-                            effective_parameters,
-                            context,
-                        ):
-                            evt_handled = True
-                            break
-                if not evt_handled:
-                    self.dialect.do_executemany(
-                        cursor,
-                        str_statement,
-                        effective_parameters,
-                        context,
-                    )
-            elif not effective_parameters and context.no_parameters:
-                if self.dialect._has_events:
-                    for fn in self.dialect.dispatch.do_execute_no_params:
-                        if fn(cursor, str_statement, context):
-                            evt_handled = True
-                            break
-                if not evt_handled:
-                    self.dialect.do_execute_no_params(
-                        cursor, str_statement, context
-                    )
-            else:
-                effective_parameters = cast(
-                    "_CoreSingleExecuteParams", effective_parameters
-                )
-                if self.dialect._has_events:
-                    for fn in self.dialect.dispatch.do_execute:
-                        if fn(
-                            cursor,
-                            str_statement,
-                            effective_parameters,
-                            context,
-                        ):
-                            evt_handled = True
-                            break
-                if not evt_handled:
->                   self.dialect.do_execute(
-                        cursor, str_statement, effective_parameters, context
-                    )
-
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:1967: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-self = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x0000028471EB11D0>
-cursor = <sqlite3.Cursor object at 0x00000284751204C0>
-statement = 'PRAGMA main.table_info("dream_favorite")', parameters = ()
-context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x000002847215C7C0>
-
-    def do_execute(self, cursor, statement, parameters, context=None):
->       cursor.execute(statement, parameters)
-E       sqlite3.OperationalError: database is locked
-
-.venv\Lib\site-packages\sqlalchemy\engine\default.py:952: OperationalError
-
-The above exception was the direct cause of the following exception:
-
-    @pytest.fixture(scope='function')
-    def session() -> Generator:
-    	with TestingSessionLocal() as session:
->   		Base.metadata.create_all(bind=engine)
-
-tests\conftest.py:26: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-.venv\Lib\site-packages\sqlalchemy\sql\schema.py:5931: in create_all
-    bind._run_ddl_visitor(
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:3268: in _run_ddl_visitor
-    conn._run_ddl_visitor(visitorcallable, element, **kwargs)
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:2467: in _run_ddl_visitor
-    ).traverse_single(element)
-      ^^^^^^^^^^^^^^^^^^^^^^^^
-.venv\Lib\site-packages\sqlalchemy\sql\visitors.py:661: in traverse_single
-    return meth(obj, **kw)
-           ^^^^^^^^^^^^^^^
-.venv\Lib\site-packages\sqlalchemy\sql\ddl.py:963: in visit_metadata
-    [t for t in tables if self._can_create_table(t)]
-                          ^^^^^^^^^^^^^^^^^^^^^^^^^
-.venv\Lib\site-packages\sqlalchemy\sql\ddl.py:928: in _can_create_table
-    return not self.checkfirst or not self.dialect.has_table(
-.venv\Lib\site-packages\sqlalchemy\engine\reflection.py:89: in cache
-    return fn(self, con, *args, **kw)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^
-.venv\Lib\site-packages\sqlalchemy\dialects\sqlite\base.py:2335: in has_table
-    info = self._get_table_pragma(
-.venv\Lib\site-packages\sqlalchemy\dialects\sqlite\base.py:3045: in _get_table_pragma
-    cursor = connection.exec_driver_sql(statement)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:1779: in exec_driver_sql
-    ret = self._execute_context(
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:1846: in _execute_context
-    return self._exec_single_context(
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:1986: in _exec_single_context
-    self._handle_dbapi_exception(
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:2363: in _handle_dbapi_exception
-    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:1967: in _exec_single_context
-    self.dialect.do_execute(
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-self = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x0000028471EB11D0>
-cursor = <sqlite3.Cursor object at 0x00000284751204C0>
-statement = 'PRAGMA main.table_info("dream_favorite")', parameters = ()
-context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x000002847215C7C0>
-
-    def do_execute(self, cursor, statement, parameters, context=None):
->       cursor.execute(statement, parameters)
-E       sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) database is locked
-E       [SQL: PRAGMA main.table_info("dream_favorite")]
-E       (Background on this error at: https://sqlalche.me/e/20/e3q8)
-
-.venv\Lib\site-packages\sqlalchemy\engine\default.py:952: OperationalError
-_____________ ERROR at setup of test_superadmin_can_delete_dreams _____________
-
-self = <sqlalchemy.engine.base.Connection object at 0x00000284743F64E0>
-dialect = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x0000028471EB11D0>
-context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x000002847215D480>
-statement = 'PRAGMA main.table_info("dream_favorite")', parameters = [()]
-
-    def _exec_single_context(
-        self,
-        dialect: Dialect,
-        context: ExecutionContext,
-        statement: Union[str, Compiled],
-        parameters: Optional[_AnyMultiExecuteParams],
-    ) -> CursorResult[Any]:
-        """continue the _execute_context() method for a single DBAPI
-        cursor.execute() or cursor.executemany() call.
-    
-        """
-        if dialect.bind_typing is BindTyping.SETINPUTSIZES:
-            generic_setinputsizes = context._prepare_set_input_sizes()
-    
-            if generic_setinputsizes:
-                try:
-                    dialect.do_set_input_sizes(
-                        context.cursor, generic_setinputsizes, context
-                    )
-                except BaseException as e:
-                    self._handle_dbapi_exception(
-                        e, str(statement), parameters, None, context
-                    )
-    
-        cursor, str_statement, parameters = (
-            context.cursor,
-            context.statement,
-            context.parameters,
-        )
-    
-        effective_parameters: Optional[_AnyExecuteParams]
-    
-        if not context.executemany:
-            effective_parameters = parameters[0]
-        else:
-            effective_parameters = parameters
-    
-        if self._has_events or self.engine._has_events:
-            for fn in self.dispatch.before_cursor_execute:
-                str_statement, effective_parameters = fn(
-                    self,
-                    cursor,
-                    str_statement,
-                    effective_parameters,
-                    context,
-                    context.executemany,
-                )
-    
-        if self._echo:
-            self._log_info(str_statement)
-    
-            stats = context._get_cache_stats()
-    
-            if not self.engine.hide_parameters:
-                self._log_info(
-                    "[%s] %r",
-                    stats,
-                    sql_util._repr_params(
-                        effective_parameters,
-                        batches=10,
-                        ismulti=context.executemany,
-                    ),
-                )
-            else:
-                self._log_info(
-                    "[%s] [SQL parameters hidden due to hide_parameters=True]",
-                    stats,
-                )
-    
-        evt_handled: bool = False
-        try:
-            if context.execute_style is ExecuteStyle.EXECUTEMANY:
-                effective_parameters = cast(
-                    "_CoreMultiExecuteParams", effective_parameters
-                )
-                if self.dialect._has_events:
-                    for fn in self.dialect.dispatch.do_executemany:
-                        if fn(
-                            cursor,
-                            str_statement,
-                            effective_parameters,
-                            context,
-                        ):
-                            evt_handled = True
-                            break
-                if not evt_handled:
-                    self.dialect.do_executemany(
-                        cursor,
-                        str_statement,
-                        effective_parameters,
-                        context,
-                    )
-            elif not effective_parameters and context.no_parameters:
-                if self.dialect._has_events:
-                    for fn in self.dialect.dispatch.do_execute_no_params:
-                        if fn(cursor, str_statement, context):
-                            evt_handled = True
-                            break
-                if not evt_handled:
-                    self.dialect.do_execute_no_params(
-                        cursor, str_statement, context
-                    )
-            else:
-                effective_parameters = cast(
-                    "_CoreSingleExecuteParams", effective_parameters
-                )
-                if self.dialect._has_events:
-                    for fn in self.dialect.dispatch.do_execute:
-                        if fn(
-                            cursor,
-                            str_statement,
-                            effective_parameters,
-                            context,
-                        ):
-                            evt_handled = True
-                            break
-                if not evt_handled:
->                   self.dialect.do_execute(
-                        cursor, str_statement, effective_parameters, context
-                    )
-
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:1967: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-self = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x0000028471EB11D0>
-cursor = <sqlite3.Cursor object at 0x00000284748C83C0>
-statement = 'PRAGMA main.table_info("dream_favorite")', parameters = ()
-context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x000002847215D480>
-
-    def do_execute(self, cursor, statement, parameters, context=None):
->       cursor.execute(statement, parameters)
-E       sqlite3.OperationalError: database is locked
-
-.venv\Lib\site-packages\sqlalchemy\engine\default.py:952: OperationalError
-
-The above exception was the direct cause of the following exception:
-
-    @pytest.fixture(scope='function')
-    def session() -> Generator:
-    	with TestingSessionLocal() as session:
->   		Base.metadata.create_all(bind=engine)
-
-tests\conftest.py:26: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-.venv\Lib\site-packages\sqlalchemy\sql\schema.py:5931: in create_all
-    bind._run_ddl_visitor(
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:3268: in _run_ddl_visitor
-    conn._run_ddl_visitor(visitorcallable, element, **kwargs)
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:2467: in _run_ddl_visitor
-    ).traverse_single(element)
-      ^^^^^^^^^^^^^^^^^^^^^^^^
-.venv\Lib\site-packages\sqlalchemy\sql\visitors.py:661: in traverse_single
-    return meth(obj, **kw)
-           ^^^^^^^^^^^^^^^
-.venv\Lib\site-packages\sqlalchemy\sql\ddl.py:963: in visit_metadata
-    [t for t in tables if self._can_create_table(t)]
-                          ^^^^^^^^^^^^^^^^^^^^^^^^^
-.venv\Lib\site-packages\sqlalchemy\sql\ddl.py:928: in _can_create_table
-    return not self.checkfirst or not self.dialect.has_table(
-.venv\Lib\site-packages\sqlalchemy\engine\reflection.py:89: in cache
-    return fn(self, con, *args, **kw)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^
-.venv\Lib\site-packages\sqlalchemy\dialects\sqlite\base.py:2335: in has_table
-    info = self._get_table_pragma(
-.venv\Lib\site-packages\sqlalchemy\dialects\sqlite\base.py:3045: in _get_table_pragma
-    cursor = connection.exec_driver_sql(statement)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:1779: in exec_driver_sql
-    ret = self._execute_context(
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:1846: in _execute_context
-    return self._exec_single_context(
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:1986: in _exec_single_context
-    self._handle_dbapi_exception(
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:2363: in _handle_dbapi_exception
-    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:1967: in _exec_single_context
-    self.dialect.do_execute(
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-self = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x0000028471EB11D0>
-cursor = <sqlite3.Cursor object at 0x00000284748C83C0>
-statement = 'PRAGMA main.table_info("dream_favorite")', parameters = ()
-context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x000002847215D480>
-
-    def do_execute(self, cursor, statement, parameters, context=None):
->       cursor.execute(statement, parameters)
-E       sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) database is locked
-E       [SQL: PRAGMA main.table_info("dream_favorite")]
-E       (Background on this error at: https://sqlalche.me/e/20/e3q8)
-
-.venv\Lib\site-packages\sqlalchemy\engine\default.py:952: OperationalError
-___________ ERROR at setup of test_cannot_delete_non_existent_dream ___________
-
-self = <sqlalchemy.engine.base.Connection object at 0x00000284743F85F0>
-dialect = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x0000028471EB11D0>
-context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x000002847215DBF0>
-statement = 'PRAGMA main.table_info("dream_favorite")', parameters = [()]
-
-    def _exec_single_context(
-        self,
-        dialect: Dialect,
-        context: ExecutionContext,
-        statement: Union[str, Compiled],
-        parameters: Optional[_AnyMultiExecuteParams],
-    ) -> CursorResult[Any]:
-        """continue the _execute_context() method for a single DBAPI
-        cursor.execute() or cursor.executemany() call.
-    
-        """
-        if dialect.bind_typing is BindTyping.SETINPUTSIZES:
-            generic_setinputsizes = context._prepare_set_input_sizes()
-    
-            if generic_setinputsizes:
-                try:
-                    dialect.do_set_input_sizes(
-                        context.cursor, generic_setinputsizes, context
-                    )
-                except BaseException as e:
-                    self._handle_dbapi_exception(
-                        e, str(statement), parameters, None, context
-                    )
-    
-        cursor, str_statement, parameters = (
-            context.cursor,
-            context.statement,
-            context.parameters,
-        )
-    
-        effective_parameters: Optional[_AnyExecuteParams]
-    
-        if not context.executemany:
-            effective_parameters = parameters[0]
-        else:
-            effective_parameters = parameters
-    
-        if self._has_events or self.engine._has_events:
-            for fn in self.dispatch.before_cursor_execute:
-                str_statement, effective_parameters = fn(
-                    self,
-                    cursor,
-                    str_statement,
-                    effective_parameters,
-                    context,
-                    context.executemany,
-                )
-    
-        if self._echo:
-            self._log_info(str_statement)
-    
-            stats = context._get_cache_stats()
-    
-            if not self.engine.hide_parameters:
-                self._log_info(
-                    "[%s] %r",
-                    stats,
-                    sql_util._repr_params(
-                        effective_parameters,
-                        batches=10,
-                        ismulti=context.executemany,
-                    ),
-                )
-            else:
-                self._log_info(
-                    "[%s] [SQL parameters hidden due to hide_parameters=True]",
-                    stats,
-                )
-    
-        evt_handled: bool = False
-        try:
-            if context.execute_style is ExecuteStyle.EXECUTEMANY:
-                effective_parameters = cast(
-                    "_CoreMultiExecuteParams", effective_parameters
-                )
-                if self.dialect._has_events:
-                    for fn in self.dialect.dispatch.do_executemany:
-                        if fn(
-                            cursor,
-                            str_statement,
-                            effective_parameters,
-                            context,
-                        ):
-                            evt_handled = True
-                            break
-                if not evt_handled:
-                    self.dialect.do_executemany(
-                        cursor,
-                        str_statement,
-                        effective_parameters,
-                        context,
-                    )
-            elif not effective_parameters and context.no_parameters:
-                if self.dialect._has_events:
-                    for fn in self.dialect.dispatch.do_execute_no_params:
-                        if fn(cursor, str_statement, context):
-                            evt_handled = True
-                            break
-                if not evt_handled:
-                    self.dialect.do_execute_no_params(
-                        cursor, str_statement, context
-                    )
-            else:
-                effective_parameters = cast(
-                    "_CoreSingleExecuteParams", effective_parameters
-                )
-                if self.dialect._has_events:
-                    for fn in self.dialect.dispatch.do_execute:
-                        if fn(
-                            cursor,
-                            str_statement,
-                            effective_parameters,
-                            context,
-                        ):
-                            evt_handled = True
-                            break
-                if not evt_handled:
->                   self.dialect.do_execute(
-                        cursor, str_statement, effective_parameters, context
-                    )
-
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:1967: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-self = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x0000028471EB11D0>
-cursor = <sqlite3.Cursor object at 0x0000028472D99940>
-statement = 'PRAGMA main.table_info("dream_favorite")', parameters = ()
-context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x000002847215DBF0>
-
-    def do_execute(self, cursor, statement, parameters, context=None):
->       cursor.execute(statement, parameters)
-E       sqlite3.OperationalError: database is locked
-
-.venv\Lib\site-packages\sqlalchemy\engine\default.py:952: OperationalError
-
-The above exception was the direct cause of the following exception:
-
-    @pytest.fixture(scope='function')
-    def session() -> Generator:
-    	with TestingSessionLocal() as session:
->   		Base.metadata.create_all(bind=engine)
-
-tests\conftest.py:26: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-.venv\Lib\site-packages\sqlalchemy\sql\schema.py:5931: in create_all
-    bind._run_ddl_visitor(
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:3268: in _run_ddl_visitor
-    conn._run_ddl_visitor(visitorcallable, element, **kwargs)
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:2467: in _run_ddl_visitor
-    ).traverse_single(element)
-      ^^^^^^^^^^^^^^^^^^^^^^^^
-.venv\Lib\site-packages\sqlalchemy\sql\visitors.py:661: in traverse_single
-    return meth(obj, **kw)
-           ^^^^^^^^^^^^^^^
-.venv\Lib\site-packages\sqlalchemy\sql\ddl.py:963: in visit_metadata
-    [t for t in tables if self._can_create_table(t)]
-                          ^^^^^^^^^^^^^^^^^^^^^^^^^
-.venv\Lib\site-packages\sqlalchemy\sql\ddl.py:928: in _can_create_table
-    return not self.checkfirst or not self.dialect.has_table(
-.venv\Lib\site-packages\sqlalchemy\engine\reflection.py:89: in cache
-    return fn(self, con, *args, **kw)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^
-.venv\Lib\site-packages\sqlalchemy\dialects\sqlite\base.py:2335: in has_table
-    info = self._get_table_pragma(
-.venv\Lib\site-packages\sqlalchemy\dialects\sqlite\base.py:3045: in _get_table_pragma
-    cursor = connection.exec_driver_sql(statement)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:1779: in exec_driver_sql
-    ret = self._execute_context(
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:1846: in _execute_context
-    return self._exec_single_context(
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:1986: in _exec_single_context
-    self._handle_dbapi_exception(
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:2363: in _handle_dbapi_exception
-    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:1967: in _exec_single_context
-    self.dialect.do_execute(
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-self = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x0000028471EB11D0>
-cursor = <sqlite3.Cursor object at 0x0000028472D99940>
-statement = 'PRAGMA main.table_info("dream_favorite")', parameters = ()
-context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x000002847215DBF0>
-
-    def do_execute(self, cursor, statement, parameters, context=None):
->       cursor.execute(statement, parameters)
-E       sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) database is locked
-E       [SQL: PRAGMA main.table_info("dream_favorite")]
-E       (Background on this error at: https://sqlalche.me/e/20/e3q8)
-
-.venv\Lib\site-packages\sqlalchemy\engine\default.py:952: OperationalError
-_________ ERROR at setup of test_cannot_delete_dream_of_other_author __________
-
-self = <sqlalchemy.engine.base.Connection object at 0x00000284743F98B0>
-dialect = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x0000028471EB11D0>
-context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x000002847215E250>
-statement = 'PRAGMA main.table_info("dream_favorite")', parameters = [()]
-
-    def _exec_single_context(
-        self,
-        dialect: Dialect,
-        context: ExecutionContext,
-        statement: Union[str, Compiled],
-        parameters: Optional[_AnyMultiExecuteParams],
-    ) -> CursorResult[Any]:
-        """continue the _execute_context() method for a single DBAPI
-        cursor.execute() or cursor.executemany() call.
-    
-        """
-        if dialect.bind_typing is BindTyping.SETINPUTSIZES:
-            generic_setinputsizes = context._prepare_set_input_sizes()
-    
-            if generic_setinputsizes:
-                try:
-                    dialect.do_set_input_sizes(
-                        context.cursor, generic_setinputsizes, context
-                    )
-                except BaseException as e:
-                    self._handle_dbapi_exception(
-                        e, str(statement), parameters, None, context
-                    )
-    
-        cursor, str_statement, parameters = (
-            context.cursor,
-            context.statement,
-            context.parameters,
-        )
-    
-        effective_parameters: Optional[_AnyExecuteParams]
-    
-        if not context.executemany:
-            effective_parameters = parameters[0]
-        else:
-            effective_parameters = parameters
-    
-        if self._has_events or self.engine._has_events:
-            for fn in self.dispatch.before_cursor_execute:
-                str_statement, effective_parameters = fn(
-                    self,
-                    cursor,
-                    str_statement,
-                    effective_parameters,
-                    context,
-                    context.executemany,
-                )
-    
-        if self._echo:
-            self._log_info(str_statement)
-    
-            stats = context._get_cache_stats()
-    
-            if not self.engine.hide_parameters:
-                self._log_info(
-                    "[%s] %r",
-                    stats,
-                    sql_util._repr_params(
-                        effective_parameters,
-                        batches=10,
-                        ismulti=context.executemany,
-                    ),
-                )
-            else:
-                self._log_info(
-                    "[%s] [SQL parameters hidden due to hide_parameters=True]",
-                    stats,
-                )
-    
-        evt_handled: bool = False
-        try:
-            if context.execute_style is ExecuteStyle.EXECUTEMANY:
-                effective_parameters = cast(
-                    "_CoreMultiExecuteParams", effective_parameters
-                )
-                if self.dialect._has_events:
-                    for fn in self.dialect.dispatch.do_executemany:
-                        if fn(
-                            cursor,
-                            str_statement,
-                            effective_parameters,
-                            context,
-                        ):
-                            evt_handled = True
-                            break
-                if not evt_handled:
-                    self.dialect.do_executemany(
-                        cursor,
-                        str_statement,
-                        effective_parameters,
-                        context,
-                    )
-            elif not effective_parameters and context.no_parameters:
-                if self.dialect._has_events:
-                    for fn in self.dialect.dispatch.do_execute_no_params:
-                        if fn(cursor, str_statement, context):
-                            evt_handled = True
-                            break
-                if not evt_handled:
-                    self.dialect.do_execute_no_params(
-                        cursor, str_statement, context
-                    )
-            else:
-                effective_parameters = cast(
-                    "_CoreSingleExecuteParams", effective_parameters
-                )
-                if self.dialect._has_events:
-                    for fn in self.dialect.dispatch.do_execute:
-                        if fn(
-                            cursor,
-                            str_statement,
-                            effective_parameters,
-                            context,
-                        ):
-                            evt_handled = True
-                            break
-                if not evt_handled:
->                   self.dialect.do_execute(
-                        cursor, str_statement, effective_parameters, context
-                    )
-
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:1967: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-self = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x0000028471EB11D0>
-cursor = <sqlite3.Cursor object at 0x000002847278CD40>
-statement = 'PRAGMA main.table_info("dream_favorite")', parameters = ()
-context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x000002847215E250>
-
-    def do_execute(self, cursor, statement, parameters, context=None):
->       cursor.execute(statement, parameters)
-E       sqlite3.OperationalError: database is locked
-
-.venv\Lib\site-packages\sqlalchemy\engine\default.py:952: OperationalError
-
-The above exception was the direct cause of the following exception:
-
-    @pytest.fixture(scope='function')
-    def session() -> Generator:
-    	with TestingSessionLocal() as session:
->   		Base.metadata.create_all(bind=engine)
-
-tests\conftest.py:26: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-.venv\Lib\site-packages\sqlalchemy\sql\schema.py:5931: in create_all
-    bind._run_ddl_visitor(
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:3268: in _run_ddl_visitor
-    conn._run_ddl_visitor(visitorcallable, element, **kwargs)
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:2467: in _run_ddl_visitor
-    ).traverse_single(element)
-      ^^^^^^^^^^^^^^^^^^^^^^^^
-.venv\Lib\site-packages\sqlalchemy\sql\visitors.py:661: in traverse_single
-    return meth(obj, **kw)
-           ^^^^^^^^^^^^^^^
-.venv\Lib\site-packages\sqlalchemy\sql\ddl.py:963: in visit_metadata
-    [t for t in tables if self._can_create_table(t)]
-                          ^^^^^^^^^^^^^^^^^^^^^^^^^
-.venv\Lib\site-packages\sqlalchemy\sql\ddl.py:928: in _can_create_table
-    return not self.checkfirst or not self.dialect.has_table(
-.venv\Lib\site-packages\sqlalchemy\engine\reflection.py:89: in cache
-    return fn(self, con, *args, **kw)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^
-.venv\Lib\site-packages\sqlalchemy\dialects\sqlite\base.py:2335: in has_table
-    info = self._get_table_pragma(
-.venv\Lib\site-packages\sqlalchemy\dialects\sqlite\base.py:3045: in _get_table_pragma
-    cursor = connection.exec_driver_sql(statement)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:1779: in exec_driver_sql
-    ret = self._execute_context(
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:1846: in _execute_context
-    return self._exec_single_context(
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:1986: in _exec_single_context
-    self._handle_dbapi_exception(
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:2363: in _handle_dbapi_exception
-    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:1967: in _exec_single_context
-    self.dialect.do_execute(
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-self = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x0000028471EB11D0>
-cursor = <sqlite3.Cursor object at 0x000002847278CD40>
-statement = 'PRAGMA main.table_info("dream_favorite")', parameters = ()
-context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x000002847215E250>
-
-    def do_execute(self, cursor, statement, parameters, context=None):
->       cursor.execute(statement, parameters)
-E       sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) database is locked
-E       [SQL: PRAGMA main.table_info("dream_favorite")]
-E       (Background on this error at: https://sqlalche.me/e/20/e3q8)
-
-.venv\Lib\site-packages\sqlalchemy\engine\default.py:952: OperationalError
-_________________ ERROR at setup of test_can_delete_own_dream _________________
-
-self = <sqlalchemy.engine.base.Connection object at 0x00000284743FAA80>
-dialect = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x0000028471EB11D0>
-context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x000002847215DE10>
-statement = 'PRAGMA main.table_info("dream_favorite")', parameters = [()]
-
-    def _exec_single_context(
-        self,
-        dialect: Dialect,
-        context: ExecutionContext,
-        statement: Union[str, Compiled],
-        parameters: Optional[_AnyMultiExecuteParams],
-    ) -> CursorResult[Any]:
-        """continue the _execute_context() method for a single DBAPI
-        cursor.execute() or cursor.executemany() call.
-    
-        """
-        if dialect.bind_typing is BindTyping.SETINPUTSIZES:
-            generic_setinputsizes = context._prepare_set_input_sizes()
-    
-            if generic_setinputsizes:
-                try:
-                    dialect.do_set_input_sizes(
-                        context.cursor, generic_setinputsizes, context
-                    )
-                except BaseException as e:
-                    self._handle_dbapi_exception(
-                        e, str(statement), parameters, None, context
-                    )
-    
-        cursor, str_statement, parameters = (
-            context.cursor,
-            context.statement,
-            context.parameters,
-        )
-    
-        effective_parameters: Optional[_AnyExecuteParams]
-    
-        if not context.executemany:
-            effective_parameters = parameters[0]
-        else:
-            effective_parameters = parameters
-    
-        if self._has_events or self.engine._has_events:
-            for fn in self.dispatch.before_cursor_execute:
-                str_statement, effective_parameters = fn(
-                    self,
-                    cursor,
-                    str_statement,
-                    effective_parameters,
-                    context,
-                    context.executemany,
-                )
-    
-        if self._echo:
-            self._log_info(str_statement)
-    
-            stats = context._get_cache_stats()
-    
-            if not self.engine.hide_parameters:
-                self._log_info(
-                    "[%s] %r",
-                    stats,
-                    sql_util._repr_params(
-                        effective_parameters,
-                        batches=10,
-                        ismulti=context.executemany,
-                    ),
-                )
-            else:
-                self._log_info(
-                    "[%s] [SQL parameters hidden due to hide_parameters=True]",
-                    stats,
-                )
-    
-        evt_handled: bool = False
-        try:
-            if context.execute_style is ExecuteStyle.EXECUTEMANY:
-                effective_parameters = cast(
-                    "_CoreMultiExecuteParams", effective_parameters
-                )
-                if self.dialect._has_events:
-                    for fn in self.dialect.dispatch.do_executemany:
-                        if fn(
-                            cursor,
-                            str_statement,
-                            effective_parameters,
-                            context,
-                        ):
-                            evt_handled = True
-                            break
-                if not evt_handled:
-                    self.dialect.do_executemany(
-                        cursor,
-                        str_statement,
-                        effective_parameters,
-                        context,
-                    )
-            elif not effective_parameters and context.no_parameters:
-                if self.dialect._has_events:
-                    for fn in self.dialect.dispatch.do_execute_no_params:
-                        if fn(cursor, str_statement, context):
-                            evt_handled = True
-                            break
-                if not evt_handled:
-                    self.dialect.do_execute_no_params(
-                        cursor, str_statement, context
-                    )
-            else:
-                effective_parameters = cast(
-                    "_CoreSingleExecuteParams", effective_parameters
-                )
-                if self.dialect._has_events:
-                    for fn in self.dialect.dispatch.do_execute:
-                        if fn(
-                            cursor,
-                            str_statement,
-                            effective_parameters,
-                            context,
-                        ):
-                            evt_handled = True
-                            break
-                if not evt_handled:
->                   self.dialect.do_execute(
-                        cursor, str_statement, effective_parameters, context
-                    )
-
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:1967: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-self = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x0000028471EB11D0>
-cursor = <sqlite3.Cursor object at 0x0000028472FA83C0>
-statement = 'PRAGMA main.table_info("dream_favorite")', parameters = ()
-context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x000002847215DE10>
-
-    def do_execute(self, cursor, statement, parameters, context=None):
->       cursor.execute(statement, parameters)
-E       sqlite3.OperationalError: database is locked
-
-.venv\Lib\site-packages\sqlalchemy\engine\default.py:952: OperationalError
-
-The above exception was the direct cause of the following exception:
-
-    @pytest.fixture(scope='function')
-    def session() -> Generator:
-    	with TestingSessionLocal() as session:
->   		Base.metadata.create_all(bind=engine)
-
-tests\conftest.py:26: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-.venv\Lib\site-packages\sqlalchemy\sql\schema.py:5931: in create_all
-    bind._run_ddl_visitor(
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:3268: in _run_ddl_visitor
-    conn._run_ddl_visitor(visitorcallable, element, **kwargs)
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:2467: in _run_ddl_visitor
-    ).traverse_single(element)
-      ^^^^^^^^^^^^^^^^^^^^^^^^
-.venv\Lib\site-packages\sqlalchemy\sql\visitors.py:661: in traverse_single
-    return meth(obj, **kw)
-           ^^^^^^^^^^^^^^^
-.venv\Lib\site-packages\sqlalchemy\sql\ddl.py:963: in visit_metadata
-    [t for t in tables if self._can_create_table(t)]
-                          ^^^^^^^^^^^^^^^^^^^^^^^^^
-.venv\Lib\site-packages\sqlalchemy\sql\ddl.py:928: in _can_create_table
-    return not self.checkfirst or not self.dialect.has_table(
-.venv\Lib\site-packages\sqlalchemy\engine\reflection.py:89: in cache
-    return fn(self, con, *args, **kw)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^
-.venv\Lib\site-packages\sqlalchemy\dialects\sqlite\base.py:2335: in has_table
-    info = self._get_table_pragma(
-.venv\Lib\site-packages\sqlalchemy\dialects\sqlite\base.py:3045: in _get_table_pragma
-    cursor = connection.exec_driver_sql(statement)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:1779: in exec_driver_sql
-    ret = self._execute_context(
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:1846: in _execute_context
-    return self._exec_single_context(
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:1986: in _exec_single_context
-    self._handle_dbapi_exception(
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:2363: in _handle_dbapi_exception
-    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:1967: in _exec_single_context
-    self.dialect.do_execute(
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-self = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x0000028471EB11D0>
-cursor = <sqlite3.Cursor object at 0x0000028472FA83C0>
-statement = 'PRAGMA main.table_info("dream_favorite")', parameters = ()
-context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x000002847215DE10>
-
-    def do_execute(self, cursor, statement, parameters, context=None):
->       cursor.execute(statement, parameters)
-E       sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) database is locked
-E       [SQL: PRAGMA main.table_info("dream_favorite")]
-E       (Background on this error at: https://sqlalche.me/e/20/e3q8)
-
-.venv\Lib\site-packages\sqlalchemy\engine\default.py:952: OperationalError
-_____________ ERROR at setup of test_guest_cannot_favorite_dream ______________
-
-self = <sqlalchemy.engine.base.Connection object at 0x00000284721664E0>
-dialect = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x0000028471EB11D0>
-context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x00000284720519D0>
-statement = 'PRAGMA main.table_info("dream_favorite")', parameters = [()]
-
-    def _exec_single_context(
-        self,
-        dialect: Dialect,
-        context: ExecutionContext,
-        statement: Union[str, Compiled],
-        parameters: Optional[_AnyMultiExecuteParams],
-    ) -> CursorResult[Any]:
-        """continue the _execute_context() method for a single DBAPI
-        cursor.execute() or cursor.executemany() call.
-    
-        """
-        if dialect.bind_typing is BindTyping.SETINPUTSIZES:
-            generic_setinputsizes = context._prepare_set_input_sizes()
-    
-            if generic_setinputsizes:
-                try:
-                    dialect.do_set_input_sizes(
-                        context.cursor, generic_setinputsizes, context
-                    )
-                except BaseException as e:
-                    self._handle_dbapi_exception(
-                        e, str(statement), parameters, None, context
-                    )
-    
-        cursor, str_statement, parameters = (
-            context.cursor,
-            context.statement,
-            context.parameters,
-        )
-    
-        effective_parameters: Optional[_AnyExecuteParams]
-    
-        if not context.executemany:
-            effective_parameters = parameters[0]
-        else:
-            effective_parameters = parameters
-    
-        if self._has_events or self.engine._has_events:
-            for fn in self.dispatch.before_cursor_execute:
-                str_statement, effective_parameters = fn(
-                    self,
-                    cursor,
-                    str_statement,
-                    effective_parameters,
-                    context,
-                    context.executemany,
-                )
-    
-        if self._echo:
-            self._log_info(str_statement)
-    
-            stats = context._get_cache_stats()
-    
-            if not self.engine.hide_parameters:
-                self._log_info(
-                    "[%s] %r",
-                    stats,
-                    sql_util._repr_params(
-                        effective_parameters,
-                        batches=10,
-                        ismulti=context.executemany,
-                    ),
-                )
-            else:
-                self._log_info(
-                    "[%s] [SQL parameters hidden due to hide_parameters=True]",
-                    stats,
-                )
-    
-        evt_handled: bool = False
-        try:
-            if context.execute_style is ExecuteStyle.EXECUTEMANY:
-                effective_parameters = cast(
-                    "_CoreMultiExecuteParams", effective_parameters
-                )
-                if self.dialect._has_events:
-                    for fn in self.dialect.dispatch.do_executemany:
-                        if fn(
-                            cursor,
-                            str_statement,
-                            effective_parameters,
-                            context,
-                        ):
-                            evt_handled = True
-                            break
-                if not evt_handled:
-                    self.dialect.do_executemany(
-                        cursor,
-                        str_statement,
-                        effective_parameters,
-                        context,
-                    )
-            elif not effective_parameters and context.no_parameters:
-                if self.dialect._has_events:
-                    for fn in self.dialect.dispatch.do_execute_no_params:
-                        if fn(cursor, str_statement, context):
-                            evt_handled = True
-                            break
-                if not evt_handled:
-                    self.dialect.do_execute_no_params(
-                        cursor, str_statement, context
-                    )
-            else:
-                effective_parameters = cast(
-                    "_CoreSingleExecuteParams", effective_parameters
-                )
-                if self.dialect._has_events:
-                    for fn in self.dialect.dispatch.do_execute:
-                        if fn(
-                            cursor,
-                            str_statement,
-                            effective_parameters,
-                            context,
-                        ):
-                            evt_handled = True
-                            break
-                if not evt_handled:
->                   self.dialect.do_execute(
-                        cursor, str_statement, effective_parameters, context
-                    )
-
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:1967: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-self = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x0000028471EB11D0>
-cursor = <sqlite3.Cursor object at 0x000002847421FBC0>
-statement = 'PRAGMA main.table_info("dream_favorite")', parameters = ()
-context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x00000284720519D0>
-
-    def do_execute(self, cursor, statement, parameters, context=None):
->       cursor.execute(statement, parameters)
-E       sqlite3.OperationalError: database is locked
-
-.venv\Lib\site-packages\sqlalchemy\engine\default.py:952: OperationalError
-
-The above exception was the direct cause of the following exception:
-
-    @pytest.fixture(scope='function')
-    def session() -> Generator:
-    	with TestingSessionLocal() as session:
->   		Base.metadata.create_all(bind=engine)
-
-tests\conftest.py:26: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-.venv\Lib\site-packages\sqlalchemy\sql\schema.py:5931: in create_all
-    bind._run_ddl_visitor(
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:3268: in _run_ddl_visitor
-    conn._run_ddl_visitor(visitorcallable, element, **kwargs)
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:2467: in _run_ddl_visitor
-    ).traverse_single(element)
-      ^^^^^^^^^^^^^^^^^^^^^^^^
-.venv\Lib\site-packages\sqlalchemy\sql\visitors.py:661: in traverse_single
-    return meth(obj, **kw)
-           ^^^^^^^^^^^^^^^
-.venv\Lib\site-packages\sqlalchemy\sql\ddl.py:963: in visit_metadata
-    [t for t in tables if self._can_create_table(t)]
-                          ^^^^^^^^^^^^^^^^^^^^^^^^^
-.venv\Lib\site-packages\sqlalchemy\sql\ddl.py:928: in _can_create_table
-    return not self.checkfirst or not self.dialect.has_table(
-.venv\Lib\site-packages\sqlalchemy\engine\reflection.py:89: in cache
-    return fn(self, con, *args, **kw)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^
-.venv\Lib\site-packages\sqlalchemy\dialects\sqlite\base.py:2335: in has_table
-    info = self._get_table_pragma(
-.venv\Lib\site-packages\sqlalchemy\dialects\sqlite\base.py:3045: in _get_table_pragma
-    cursor = connection.exec_driver_sql(statement)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:1779: in exec_driver_sql
-    ret = self._execute_context(
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:1846: in _execute_context
-    return self._exec_single_context(
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:1986: in _exec_single_context
-    self._handle_dbapi_exception(
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:2363: in _handle_dbapi_exception
-    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:1967: in _exec_single_context
-    self.dialect.do_execute(
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-self = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x0000028471EB11D0>
-cursor = <sqlite3.Cursor object at 0x000002847421FBC0>
-statement = 'PRAGMA main.table_info("dream_favorite")', parameters = ()
-context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x00000284720519D0>
-
-    def do_execute(self, cursor, statement, parameters, context=None):
->       cursor.execute(statement, parameters)
-E       sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) database is locked
-E       [SQL: PRAGMA main.table_info("dream_favorite")]
-E       (Background on this error at: https://sqlalche.me/e/20/e3q8)
-
-.venv\Lib\site-packages\sqlalchemy\engine\default.py:952: OperationalError
 ================================== FAILURES ===================================
 _______________ test_cannot_create_dream_with_same_description ________________
 
-self = <sqlalchemy.engine.base.Connection object at 0x0000028472164050>
-dialect = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x0000028471C80EC0>
-context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x0000028472052580>
-statement = <sqlalchemy.dialects.sqlite.base.SQLiteCompiler object at 0x0000028472147110>
+self = <sqlalchemy.engine.base.Connection object at 0x00000598AE5E1710>
+dialect = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x00000598AAFE4390>
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x00000598AE236690>
+statement = <sqlalchemy.dialects.sqlite.base.SQLiteCompiler object at 0x00000598AE235B50>
 parameters = [('john.doe', 'Test Description 1')]
 
     def _exec_single_context(
@@ -1522,78 +146,71 @@ parameters = [('john.doe', 'Test Description 1')]
                         cursor, str_statement, effective_parameters, context
                     )
 
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:1967: 
+venv\Lib\site-packages\sqlalchemy\engine\base.py:1967: 
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-self = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x0000028471C80EC0>
-cursor = <sqlite3.Cursor object at 0x000002847214F740>
-statement = "INSERT INTO dreams (author_id, description, created_at) VALUES (?, ?, datetime('now')) RETURNING id, author_id, description, created_at;"
+self = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x00000598AAFE4390>
+cursor = <sqlite3.Cursor object at 0x00000598AE3A0780>
+statement = "INSERT INTO dreams (author_id, description, created_at) VALUES (?, ?, datetime('now')) RETURNING id, author_id, description, created_at"
 parameters = ('john.doe', 'Test Description 1')
-context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x0000028472052580>
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x00000598AE236690>
 
     def do_execute(self, cursor, statement, parameters, context=None):
 >       cursor.execute(statement, parameters)
 E       sqlite3.IntegrityError: UNIQUE constraint failed: dreams.author_id, dreams.description
 
-.venv\Lib\site-packages\sqlalchemy\engine\default.py:952: IntegrityError
+venv\Lib\site-packages\sqlalchemy\engine\default.py:952: IntegrityError
 
 The above exception was the direct cause of the following exception:
 
-    def create(*, session: Session, new_dream: schema.NewDream, author: schema.UserProfile) -> models.Dream:
-    	"""
-    	:session: сессия sqlalchemy
-    	:new_dream: данные сна для добавления
-    	:author: данные об авторе
-    
-    	Добавляет новый сон, включая информацию об авторе, в базу данных.
-    	В случае, если такой сон уже добавлен, выбрасывает DuplicateDatabaseException.
-    	Иначе - возвращает ORM-объект с новым сном.
-    	"""
-    	try:
->   		dream = session.execute(text('INSERT INTO dreams (author_id, description, created_at) VALUES (:username, :description, datetime(\'now\')) RETURNING id, author_id, description, created_at;'),
-    					{'username': author.username, 'description': new_dream.description}).fetchone()
+    def create(*, session: Session, new_dream: schema.NewDream, author: schema.UserProfile) -> schema.Dream:
+        try:
+>           dream = session.execute(
+                text("INSERT INTO dreams (author_id, description, created_at) VALUES (:username, :description, datetime('now')) RETURNING id, author_id, description, created_at"),
+                {'username': author.username, 'description': new_dream.description}
+            ).fetchone()
 
-app\services\dreams_service.py:109: 
+app\services\dreams_service.py:107: 
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-.venv\Lib\site-packages\sqlalchemy\orm\session.py:2351: in execute
+venv\Lib\site-packages\sqlalchemy\orm\session.py:2351: in execute
     return self._execute_internal(
-.venv\Lib\site-packages\sqlalchemy\orm\session.py:2258: in _execute_internal
+venv\Lib\site-packages\sqlalchemy\orm\session.py:2258: in _execute_internal
     result = conn.execute(
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:1419: in execute
+venv\Lib\site-packages\sqlalchemy\engine\base.py:1419: in execute
     return meth(
-.venv\Lib\site-packages\sqlalchemy\sql\elements.py:527: in _execute_on_connection
+venv\Lib\site-packages\sqlalchemy\sql\elements.py:527: in _execute_on_connection
     return connection._execute_clauseelement(
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:1641: in _execute_clauseelement
+venv\Lib\site-packages\sqlalchemy\engine\base.py:1641: in _execute_clauseelement
     ret = self._execute_context(
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:1846: in _execute_context
+venv\Lib\site-packages\sqlalchemy\engine\base.py:1846: in _execute_context
     return self._exec_single_context(
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:1986: in _exec_single_context
+venv\Lib\site-packages\sqlalchemy\engine\base.py:1986: in _exec_single_context
     self._handle_dbapi_exception(
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:2363: in _handle_dbapi_exception
+venv\Lib\site-packages\sqlalchemy\engine\base.py:2363: in _handle_dbapi_exception
     raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:1967: in _exec_single_context
+venv\Lib\site-packages\sqlalchemy\engine\base.py:1967: in _exec_single_context
     self.dialect.do_execute(
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-self = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x0000028471C80EC0>
-cursor = <sqlite3.Cursor object at 0x000002847214F740>
-statement = "INSERT INTO dreams (author_id, description, created_at) VALUES (?, ?, datetime('now')) RETURNING id, author_id, description, created_at;"
+self = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x00000598AAFE4390>
+cursor = <sqlite3.Cursor object at 0x00000598AE3A0780>
+statement = "INSERT INTO dreams (author_id, description, created_at) VALUES (?, ?, datetime('now')) RETURNING id, author_id, description, created_at"
 parameters = ('john.doe', 'Test Description 1')
-context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x0000028472052580>
+context = <sqlalchemy.dialects.sqlite.base.SQLiteExecutionContext object at 0x00000598AE236690>
 
     def do_execute(self, cursor, statement, parameters, context=None):
 >       cursor.execute(statement, parameters)
 E       sqlalchemy.exc.IntegrityError: (sqlite3.IntegrityError) UNIQUE constraint failed: dreams.author_id, dreams.description
-E       [SQL: INSERT INTO dreams (author_id, description, created_at) VALUES (?, ?, datetime('now')) RETURNING id, author_id, description, created_at;]
+E       [SQL: INSERT INTO dreams (author_id, description, created_at) VALUES (?, ?, datetime('now')) RETURNING id, author_id, description, created_at]
 E       [parameters: ('john.doe', 'Test Description 1')]
 E       (Background on this error at: https://sqlalche.me/e/20/gkpj)
 
-.venv\Lib\site-packages\sqlalchemy\engine\default.py:952: IntegrityError
+venv\Lib\site-packages\sqlalchemy\engine\default.py:952: IntegrityError
 
 During handling of the above exception, another exception occurred:
 
-client = <starlette.testclient.TestClient object at 0x00000284720519D0>
-session = <sqlalchemy.orm.session.Session object at 0x0000028472050AF0>
+client = <starlette.testclient.TestClient object at 0x00000598AC687090>
+session = <sqlalchemy.orm.session.Session object at 0x00000598AC6871D0>
 
     def test_cannot_create_dream_with_same_description(client: TestClient, session: Session) -> None:
     	john = acting_as_john(session, client)
@@ -1611,147 +228,117 @@ session = <sqlalchemy.orm.session.Session object at 0x0000028472050AF0>
 
 tests\api\dreams\test_dreams_create.py:38: 
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-.venv\Lib\site-packages\starlette\testclient.py:546: in post
+venv\Lib\site-packages\starlette\testclient.py:546: in post
     return super().post(
-.venv\Lib\site-packages\httpx\_client.py:1144: in post
+venv\Lib\site-packages\httpx\_client.py:1144: in post
     return self.request(
-.venv\Lib\site-packages\starlette\testclient.py:445: in request
+venv\Lib\site-packages\starlette\testclient.py:445: in request
     return super().request(
-.venv\Lib\site-packages\httpx\_client.py:825: in request
+venv\Lib\site-packages\httpx\_client.py:825: in request
     return self.send(request, auth=auth, follow_redirects=follow_redirects)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.venv\Lib\site-packages\httpx\_client.py:914: in send
+venv\Lib\site-packages\httpx\_client.py:914: in send
     response = self._send_handling_auth(
-.venv\Lib\site-packages\httpx\_client.py:942: in _send_handling_auth
+venv\Lib\site-packages\httpx\_client.py:942: in _send_handling_auth
     response = self._send_handling_redirects(
-.venv\Lib\site-packages\httpx\_client.py:979: in _send_handling_redirects
+venv\Lib\site-packages\httpx\_client.py:979: in _send_handling_redirects
     response = self._send_single_request(request)
                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.venv\Lib\site-packages\httpx\_client.py:1014: in _send_single_request
+venv\Lib\site-packages\httpx\_client.py:1014: in _send_single_request
     response = transport.handle_request(request)
                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.venv\Lib\site-packages\starlette\testclient.py:348: in handle_request
+venv\Lib\site-packages\starlette\testclient.py:348: in handle_request
     raise exc
-.venv\Lib\site-packages\starlette\testclient.py:345: in handle_request
+venv\Lib\site-packages\starlette\testclient.py:345: in handle_request
     portal.call(self.app, scope, receive, send)
-.venv\Lib\site-packages\anyio\from_thread.py:334: in call
+venv\Lib\site-packages\anyio\from_thread.py:334: in call
     return cast(T_Retval, self.start_task_soon(func, *args).result())
                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-D:\Software\Python\Lib\concurrent\futures\_base.py:450: in result
+C:\Program Files\Python\Lib\concurrent\futures\_base.py:450: in result
     return self.__get_result()
            ^^^^^^^^^^^^^^^^^^^
-D:\Software\Python\Lib\concurrent\futures\_base.py:395: in __get_result
+C:\Program Files\Python\Lib\concurrent\futures\_base.py:395: in __get_result
     raise self._exception
-.venv\Lib\site-packages\anyio\from_thread.py:259: in _call_func
+venv\Lib\site-packages\anyio\from_thread.py:259: in _call_func
     retval = await retval_or_awaitable
              ^^^^^^^^^^^^^^^^^^^^^^^^^
-.venv\Lib\site-packages\fastapi\applications.py:1159: in __call__
+venv\Lib\site-packages\fastapi\applications.py:1159: in __call__
     await super().__call__(scope, receive, send)
-.venv\Lib\site-packages\starlette\applications.py:90: in __call__
+venv\Lib\site-packages\starlette\applications.py:90: in __call__
     await self.middleware_stack(scope, receive, send)
-.venv\Lib\site-packages\starlette\middleware\errors.py:186: in __call__
+venv\Lib\site-packages\starlette\middleware\errors.py:186: in __call__
     raise exc
-.venv\Lib\site-packages\starlette\middleware\errors.py:164: in __call__
+venv\Lib\site-packages\starlette\middleware\errors.py:164: in __call__
     await self.app(scope, receive, _send)
-.venv\Lib\site-packages\starlette\middleware\exceptions.py:63: in __call__
+venv\Lib\site-packages\starlette\middleware\exceptions.py:63: in __call__
     await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
-.venv\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+venv\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
     raise exc
-.venv\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+venv\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
     await app(scope, receive, sender)
-.venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py:18: in __call__
+venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py:18: in __call__
     await self.app(scope, receive, send)
-.venv\Lib\site-packages\starlette\routing.py:660: in __call__
+venv\Lib\site-packages\starlette\routing.py:660: in __call__
     await self.middleware_stack(scope, receive, send)
-.venv\Lib\site-packages\starlette\routing.py:680: in app
+venv\Lib\site-packages\starlette\routing.py:680: in app
     await route.handle(scope, receive, send)
-.venv\Lib\site-packages\starlette\routing.py:276: in handle
+venv\Lib\site-packages\starlette\routing.py:276: in handle
     await self.app(scope, receive, send)
-.venv\Lib\site-packages\fastapi\routing.py:134: in app
+venv\Lib\site-packages\fastapi\routing.py:134: in app
     await wrap_app_handling_exceptions(app, request)(scope, receive, send)
-.venv\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+venv\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
     raise exc
-.venv\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+venv\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
     await app(scope, receive, sender)
-.venv\Lib\site-packages\fastapi\routing.py:120: in app
+venv\Lib\site-packages\fastapi\routing.py:120: in app
     response = await f(request)
                ^^^^^^^^^^^^^^^^
-.venv\Lib\site-packages\fastapi\routing.py:674: in app
+venv\Lib\site-packages\fastapi\routing.py:674: in app
     raw_response = await run_endpoint_function(
-.venv\Lib\site-packages\fastapi\routing.py:330: in run_endpoint_function
+venv\Lib\site-packages\fastapi\routing.py:330: in run_endpoint_function
     return await run_in_threadpool(dependant.call, **values)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.venv\Lib\site-packages\starlette\concurrency.py:32: in run_in_threadpool
+venv\Lib\site-packages\starlette\concurrency.py:32: in run_in_threadpool
     return await anyio.to_thread.run_sync(func)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.venv\Lib\site-packages\anyio\to_thread.py:63: in run_sync
+venv\Lib\site-packages\anyio\to_thread.py:63: in run_sync
     return await get_async_backend().run_sync_in_worker_thread(
-.venv\Lib\site-packages\anyio\_backends\_asyncio.py:2518: in run_sync_in_worker_thread
+venv\Lib\site-packages\anyio\_backends\_asyncio.py:2518: in run_sync_in_worker_thread
     return await future
            ^^^^^^^^^^^^
-.venv\Lib\site-packages\anyio\_backends\_asyncio.py:1002: in run
+venv\Lib\site-packages\anyio\_backends\_asyncio.py:1002: in run
     result = context.run(func, *args)
              ^^^^^^^^^^^^^^^^^^^^^^^^
-app\api\api_dreams.py:69: in create_dream
+app\api\api_dreams.py:66: in create_dream
     dream = dreamsvc.create(session=session, new_dream=new_dream_payload, author=current_user)
             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-    def create(*, session: Session, new_dream: schema.NewDream, author: schema.UserProfile) -> models.Dream:
-    	"""
-    	:session: сессия sqlalchemy
-    	:new_dream: данные сна для добавления
-    	:author: данные об авторе
+    def create(*, session: Session, new_dream: schema.NewDream, author: schema.UserProfile) -> schema.Dream:
+        try:
+            dream = session.execute(
+                text("INSERT INTO dreams (author_id, description, created_at) VALUES (:username, :description, datetime('now')) RETURNING id, author_id, description, created_at"),
+                {'username': author.username, 'description': new_dream.description}
+            ).fetchone()
+            session.commit()
     
-    	Добавляет новый сон, включая информацию об авторе, в базу данных.
-    	В случае, если такой сон уже добавлен, выбрасывает DuplicateDatabaseException.
-    	Иначе - возвращает ORM-объект с новым сном.
-    	"""
-    	try:
-    		dream = session.execute(text('INSERT INTO dreams (author_id, description, created_at) VALUES (:username, :description, datetime(\'now\')) RETURNING id, author_id, description, created_at;'),
-    					{'username': author.username, 'description': new_dream.description}).fetchone()
-    		session.commit()
-    		return models.Dream(id=dream[0], author_id=dream[1], description=dream[2], created_at=dream[3])
-    	except IntegrityError:
->   		raise DuplicateDatabaseException()
-E     app.database.exceptions.DuplicateDatabaseException: Запись уже существует
+            return schema.Dream(
+                id=dream[0],
+                author_id=dream[1],
+                author=author,
+                favorited_by=[],  # только созданный сон, лайков нет
+                description=dream[2],
+                created_at=datetime.fromisoformat(dream[3]).isoformat() + 'Z'
+            )
+        except IntegrityError:
+>           raise DuplicateDatabaseException()
+E           app.database.exceptions.DuplicateDatabaseException: Запись уже существует
 
-app\services\dreams_service.py:114: DuplicateDatabaseException
+app\services\dreams_service.py:122: DuplicateDatabaseException
 ____________________________ test_can_create_dream ____________________________
 
-self = <sqlalchemy.engine.base.Connection object at 0x00000284743F4D70>
-
-    def _commit_impl(self) -> None:
-        if self._has_events or self.engine._has_events:
-            self.dispatch.commit(self)
-    
-        if self._echo:
-            if self._is_autocommit_isolation():
-                self._log_info(
-                    "COMMIT using DBAPI connection.commit(), "
-                    "has no effect due to autocommit mode"
-                )
-            else:
-                self._log_info("COMMIT")
-        try:
->           self.engine.dialect.do_commit(self.connection)
-
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:1145: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-
-self = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x0000028471C80EC0>
-dbapi_connection = <sqlalchemy.pool.base._ConnectionFairy object at 0x00000284721118B0>
-
-    def do_commit(self, dbapi_connection):
->       dbapi_connection.commit()
-E       sqlite3.OperationalError: database is locked
-
-.venv\Lib\site-packages\sqlalchemy\engine\default.py:715: OperationalError
-
-The above exception was the direct cause of the following exception:
-
-client = <starlette.testclient.TestClient object at 0x0000028472053F00>
-session = <sqlalchemy.orm.session.Session object at 0x0000028472117C50>
+client = <starlette.testclient.TestClient object at 0x00000598B0241B90>
+session = <sqlalchemy.orm.session.Session object at 0x00000598B01C1010>
 
     def test_can_create_dream(client: TestClient, session: Session) -> None:
     	acting_as_john(session, client)
@@ -1765,135 +352,1398 @@ session = <sqlalchemy.orm.session.Session object at 0x0000028472117C50>
 
 tests\api\dreams\test_dreams_create.py:51: 
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-.venv\Lib\site-packages\starlette\testclient.py:546: in post
+venv\Lib\site-packages\starlette\testclient.py:546: in post
     return super().post(
-.venv\Lib\site-packages\httpx\_client.py:1144: in post
+venv\Lib\site-packages\httpx\_client.py:1144: in post
     return self.request(
-.venv\Lib\site-packages\starlette\testclient.py:445: in request
+venv\Lib\site-packages\starlette\testclient.py:445: in request
     return super().request(
-.venv\Lib\site-packages\httpx\_client.py:825: in request
+venv\Lib\site-packages\httpx\_client.py:825: in request
     return self.send(request, auth=auth, follow_redirects=follow_redirects)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.venv\Lib\site-packages\httpx\_client.py:914: in send
+venv\Lib\site-packages\httpx\_client.py:914: in send
     response = self._send_handling_auth(
-.venv\Lib\site-packages\httpx\_client.py:942: in _send_handling_auth
+venv\Lib\site-packages\httpx\_client.py:942: in _send_handling_auth
     response = self._send_handling_redirects(
-.venv\Lib\site-packages\httpx\_client.py:979: in _send_handling_redirects
+venv\Lib\site-packages\httpx\_client.py:979: in _send_handling_redirects
     response = self._send_single_request(request)
                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.venv\Lib\site-packages\httpx\_client.py:1014: in _send_single_request
+venv\Lib\site-packages\httpx\_client.py:1014: in _send_single_request
     response = transport.handle_request(request)
                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.venv\Lib\site-packages\starlette\testclient.py:348: in handle_request
+venv\Lib\site-packages\starlette\testclient.py:348: in handle_request
     raise exc
-.venv\Lib\site-packages\starlette\testclient.py:345: in handle_request
+venv\Lib\site-packages\starlette\testclient.py:345: in handle_request
     portal.call(self.app, scope, receive, send)
-.venv\Lib\site-packages\anyio\from_thread.py:334: in call
+venv\Lib\site-packages\anyio\from_thread.py:334: in call
     return cast(T_Retval, self.start_task_soon(func, *args).result())
                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-D:\Software\Python\Lib\concurrent\futures\_base.py:450: in result
+C:\Program Files\Python\Lib\concurrent\futures\_base.py:450: in result
     return self.__get_result()
            ^^^^^^^^^^^^^^^^^^^
-D:\Software\Python\Lib\concurrent\futures\_base.py:395: in __get_result
+C:\Program Files\Python\Lib\concurrent\futures\_base.py:395: in __get_result
     raise self._exception
-.venv\Lib\site-packages\anyio\from_thread.py:259: in _call_func
+venv\Lib\site-packages\anyio\from_thread.py:259: in _call_func
     retval = await retval_or_awaitable
              ^^^^^^^^^^^^^^^^^^^^^^^^^
-.venv\Lib\site-packages\fastapi\applications.py:1159: in __call__
+venv\Lib\site-packages\fastapi\applications.py:1159: in __call__
     await super().__call__(scope, receive, send)
-.venv\Lib\site-packages\starlette\applications.py:90: in __call__
+venv\Lib\site-packages\starlette\applications.py:90: in __call__
     await self.middleware_stack(scope, receive, send)
-.venv\Lib\site-packages\starlette\middleware\errors.py:186: in __call__
+venv\Lib\site-packages\starlette\middleware\errors.py:186: in __call__
     raise exc
-.venv\Lib\site-packages\starlette\middleware\errors.py:164: in __call__
+venv\Lib\site-packages\starlette\middleware\errors.py:164: in __call__
     await self.app(scope, receive, _send)
-.venv\Lib\site-packages\starlette\middleware\exceptions.py:63: in __call__
+venv\Lib\site-packages\starlette\middleware\exceptions.py:63: in __call__
     await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
-.venv\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+venv\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
     raise exc
-.venv\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+venv\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
     await app(scope, receive, sender)
-.venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py:18: in __call__
+venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py:18: in __call__
     await self.app(scope, receive, send)
-.venv\Lib\site-packages\starlette\routing.py:660: in __call__
+venv\Lib\site-packages\starlette\routing.py:660: in __call__
     await self.middleware_stack(scope, receive, send)
-.venv\Lib\site-packages\starlette\routing.py:680: in app
+venv\Lib\site-packages\starlette\routing.py:680: in app
     await route.handle(scope, receive, send)
-.venv\Lib\site-packages\starlette\routing.py:276: in handle
+venv\Lib\site-packages\starlette\routing.py:276: in handle
     await self.app(scope, receive, send)
-.venv\Lib\site-packages\fastapi\routing.py:134: in app
+venv\Lib\site-packages\fastapi\routing.py:134: in app
     await wrap_app_handling_exceptions(app, request)(scope, receive, send)
-.venv\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+venv\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
     raise exc
-.venv\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+venv\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
     await app(scope, receive, sender)
-.venv\Lib\site-packages\fastapi\routing.py:120: in app
+venv\Lib\site-packages\fastapi\routing.py:120: in app
     response = await f(request)
                ^^^^^^^^^^^^^^^^
-.venv\Lib\site-packages\fastapi\routing.py:674: in app
-    raw_response = await run_endpoint_function(
-.venv\Lib\site-packages\fastapi\routing.py:330: in run_endpoint_function
-    return await run_in_threadpool(dependant.call, **values)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.venv\Lib\site-packages\starlette\concurrency.py:32: in run_in_threadpool
-    return await anyio.to_thread.run_sync(func)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.venv\Lib\site-packages\anyio\to_thread.py:63: in run_sync
-    return await get_async_backend().run_sync_in_worker_thread(
-.venv\Lib\site-packages\anyio\_backends\_asyncio.py:2518: in run_sync_in_worker_thread
-    return await future
-           ^^^^^^^^^^^^
-.venv\Lib\site-packages\anyio\_backends\_asyncio.py:1002: in run
-    result = context.run(func, *args)
-             ^^^^^^^^^^^^^^^^^^^^^^^^
-app\api\api_dreams.py:69: in create_dream
-    dream = dreamsvc.create(session=session, new_dream=new_dream_payload, author=current_user)
-            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-app\services\dreams_service.py:111: in create
-    session.commit()
-.venv\Lib\site-packages\sqlalchemy\orm\session.py:2030: in commit
-    trans.commit(_to_root=True)
-<string>:2: in commit
-    ???
-.venv\Lib\site-packages\sqlalchemy\orm\state_changes.py:137: in _go
-    ret_value = fn(self, *arg, **kw)
-                ^^^^^^^^^^^^^^^^^^^^
-.venv\Lib\site-packages\sqlalchemy\orm\session.py:1318: in commit
-    trans.commit()
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:2640: in commit
-    self._do_commit()
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:2745: in _do_commit
-    self._connection_commit_impl()
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:2716: in _connection_commit_impl
-    self.connection._commit_impl()
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:1147: in _commit_impl
-    self._handle_dbapi_exception(e, None, None, None, None)
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:2363: in _handle_dbapi_exception
-    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
-.venv\Lib\site-packages\sqlalchemy\engine\base.py:1145: in _commit_impl
-    self.engine.dialect.do_commit(self.connection)
+venv\Lib\site-packages\fastapi\routing.py:695: in app
+    content = await serialize_response(
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-self = <sqlalchemy.dialects.sqlite.pysqlite.SQLiteDialect_pysqlite object at 0x0000028471C80EC0>
-dbapi_connection = <sqlalchemy.pool.base._ConnectionFairy object at 0x00000284721118B0>
+    async def serialize_response(
+        *,
+        field: ModelField | None = None,
+        response_content: Any,
+        include: IncEx | None = None,
+        exclude: IncEx | None = None,
+        by_alias: bool = True,
+        exclude_unset: bool = False,
+        exclude_defaults: bool = False,
+        exclude_none: bool = False,
+        is_coroutine: bool = True,
+        endpoint_ctx: EndpointContext | None = None,
+        dump_json: bool = False,
+    ) -> Any:
+        if field:
+            if is_coroutine:
+                value, errors = field.validate(response_content, {}, loc=("response",))
+            else:
+                value, errors = await run_in_threadpool(
+                    field.validate, response_content, {}, loc=("response",)
+                )
+            if errors:
+                ctx = endpoint_ctx or EndpointContext()
+>               raise ResponseValidationError(
+                    errors=errors,
+                    body=response_content,
+                    endpoint_ctx=ctx,
+                )
+E               fastapi.exceptions.ResponseValidationError: 3 validation errors:
+E                 {'type': 'missing', 'loc': ('response', 'author', 'role'), 'msg': 'Field required', 'input': {'username': 'john.doe'}}
+E                 {'type': 'missing', 'loc': ('response', 'author', 'bio'), 'msg': 'Field required', 'input': {'username': 'john.doe'}}
+E                 {'type': 'string_pattern_mismatch', 'loc': ('response', 'created_at'), 'msg': "String should match pattern '^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$'", 'input': '2026-05-05T09:50:28+00:00Z', 'ctx': {'pattern': '^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$'}}
+E               
+E                 File "D:\Indev\ithub-python-project-3\app\api\api_dreams.py", line 49, in create_dream
+E                   POST /dreams/
 
-    def do_commit(self, dbapi_connection):
->       dbapi_connection.commit()
-E       sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) database is locked
-E       (Background on this error at: https://sqlalche.me/e/20/e3q8)
+venv\Lib\site-packages\fastapi\routing.py:300: ResponseValidationError
+__________________ test_cannot_delete_dream_of_other_author ___________________
 
-.venv\Lib\site-packages\sqlalchemy\engine\default.py:715: OperationalError
+client = <starlette.testclient.TestClient object at 0x00000598B0241E10>
+session = <sqlalchemy.orm.session.Session object at 0x00000598B01C1E10>
+
+    def test_cannot_delete_dream_of_other_author(client: TestClient, session: Session) -> None:
+    	jane = create_jane_user(session)
+    
+    	assert jane is not None
+    
+    	jane_dream = generate_dream(author=jane)
+    	session.add(jane_dream)
+    	session.commit()
+    
+    	acting_as_john(session, client)
+>   	r = client.delete('/dreams/1')
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\api\dreams\test_dreams_delete.py:53: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+venv\Lib\site-packages\starlette\testclient.py:635: in delete
+    return super().delete(
+venv\Lib\site-packages\httpx\_client.py:1251: in delete
+    return self.request(
+venv\Lib\site-packages\starlette\testclient.py:445: in request
+    return super().request(
+venv\Lib\site-packages\httpx\_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\httpx\_client.py:914: in send
+    response = self._send_handling_auth(
+venv\Lib\site-packages\httpx\_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+venv\Lib\site-packages\httpx\_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\httpx\_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\starlette\testclient.py:348: in handle_request
+    raise exc
+venv\Lib\site-packages\starlette\testclient.py:345: in handle_request
+    portal.call(self.app, scope, receive, send)
+venv\Lib\site-packages\anyio\from_thread.py:334: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Program Files\Python\Lib\concurrent\futures\_base.py:450: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+C:\Program Files\Python\Lib\concurrent\futures\_base.py:395: in __get_result
+    raise self._exception
+venv\Lib\site-packages\anyio\from_thread.py:259: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\fastapi\applications.py:1159: in __call__
+    await super().__call__(scope, receive, send)
+venv\Lib\site-packages\starlette\applications.py:90: in __call__
+    await self.middleware_stack(scope, receive, send)
+venv\Lib\site-packages\starlette\middleware\errors.py:186: in __call__
+    raise exc
+venv\Lib\site-packages\starlette\middleware\errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+venv\Lib\site-packages\starlette\middleware\exceptions.py:63: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+venv\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+venv\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py:18: in __call__
+    await self.app(scope, receive, send)
+venv\Lib\site-packages\starlette\routing.py:660: in __call__
+    await self.middleware_stack(scope, receive, send)
+venv\Lib\site-packages\starlette\routing.py:680: in app
+    await route.handle(scope, receive, send)
+venv\Lib\site-packages\starlette\routing.py:276: in handle
+    await self.app(scope, receive, send)
+venv\Lib\site-packages\fastapi\routing.py:134: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+venv\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+venv\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+venv\Lib\site-packages\fastapi\routing.py:120: in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\fastapi\routing.py:674: in app
+    raw_response = await run_endpoint_function(
+venv\Lib\site-packages\fastapi\routing.py:330: in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\starlette\concurrency.py:32: in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\anyio\to_thread.py:63: in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+venv\Lib\site-packages\anyio\_backends\_asyncio.py:2518: in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+venv\Lib\site-packages\anyio\_backends\_asyncio.py:1002: in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+app\api\api_dreams.py:114: in delete
+    if dream.author_id != current_user.username and current_user.role != 'superuser':
+       ^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = Dream(id=1, description='Test Description None', author=UserProfile(username='jane.doe', role='user', bio=None), created_at='2026-05-05T12:50:28.638452Z', favorited_by=[], favorites_count=0)
+item = 'author_id'
+
+    def __getattr__(self, item: str) -> Any:
+        private_attributes = object.__getattribute__(self, '__private_attributes__')
+        if item in private_attributes:
+            attribute = private_attributes[item]
+            if hasattr(attribute, '__get__'):
+                return attribute.__get__(self, type(self))  # type: ignore
+    
+            try:
+                # Note: self.__pydantic_private__ cannot be None if self.__private_attributes__ has items
+                return self.__pydantic_private__[item]  # type: ignore
+            except KeyError as exc:
+                raise AttributeError(f'{type(self).__name__!r} object has no attribute {item!r}') from exc
+        else:
+            # `__pydantic_extra__` can fail to be set if the model is not yet fully initialized.
+            # See `BaseModel.__repr_args__` for more details
+            try:
+                pydantic_extra = object.__getattribute__(self, '__pydantic_extra__')
+            except AttributeError:
+                pydantic_extra = None
+    
+            if pydantic_extra and item in pydantic_extra:
+                return pydantic_extra[item]
+            else:
+                if hasattr(self.__class__, item):
+                    return super().__getattribute__(item)  # Raises AttributeError if appropriate
+                else:
+                    # this is the current error
+>                   raise AttributeError(f'{type(self).__name__!r} object has no attribute {item!r}')
+E                   AttributeError: 'Dream' object has no attribute 'author_id'. Did you mean: 'author'?
+
+venv\Lib\site-packages\pydantic\main.py:1042: AttributeError
+__________________________ test_can_delete_own_dream __________________________
+
+client = <starlette.testclient.TestClient object at 0x00000598B0242810>
+session = <sqlalchemy.orm.session.Session object at 0x00000598B01C1510>
+
+    def test_can_delete_own_dream(client: TestClient, session: Session) -> None:
+    	john = acting_as_john(session, client)
+    
+    	john_dream = generate_dream(john)
+    	session.add(john_dream)
+    	session.commit()
+    
+>   	r = client.delete('/dreams/1')
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\api\dreams\test_dreams_delete.py:65: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+venv\Lib\site-packages\starlette\testclient.py:635: in delete
+    return super().delete(
+venv\Lib\site-packages\httpx\_client.py:1251: in delete
+    return self.request(
+venv\Lib\site-packages\starlette\testclient.py:445: in request
+    return super().request(
+venv\Lib\site-packages\httpx\_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\httpx\_client.py:914: in send
+    response = self._send_handling_auth(
+venv\Lib\site-packages\httpx\_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+venv\Lib\site-packages\httpx\_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\httpx\_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\starlette\testclient.py:348: in handle_request
+    raise exc
+venv\Lib\site-packages\starlette\testclient.py:345: in handle_request
+    portal.call(self.app, scope, receive, send)
+venv\Lib\site-packages\anyio\from_thread.py:334: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Program Files\Python\Lib\concurrent\futures\_base.py:450: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+C:\Program Files\Python\Lib\concurrent\futures\_base.py:395: in __get_result
+    raise self._exception
+venv\Lib\site-packages\anyio\from_thread.py:259: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\fastapi\applications.py:1159: in __call__
+    await super().__call__(scope, receive, send)
+venv\Lib\site-packages\starlette\applications.py:90: in __call__
+    await self.middleware_stack(scope, receive, send)
+venv\Lib\site-packages\starlette\middleware\errors.py:186: in __call__
+    raise exc
+venv\Lib\site-packages\starlette\middleware\errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+venv\Lib\site-packages\starlette\middleware\exceptions.py:63: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+venv\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+venv\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py:18: in __call__
+    await self.app(scope, receive, send)
+venv\Lib\site-packages\starlette\routing.py:660: in __call__
+    await self.middleware_stack(scope, receive, send)
+venv\Lib\site-packages\starlette\routing.py:680: in app
+    await route.handle(scope, receive, send)
+venv\Lib\site-packages\starlette\routing.py:276: in handle
+    await self.app(scope, receive, send)
+venv\Lib\site-packages\fastapi\routing.py:134: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+venv\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+venv\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+venv\Lib\site-packages\fastapi\routing.py:120: in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\fastapi\routing.py:674: in app
+    raw_response = await run_endpoint_function(
+venv\Lib\site-packages\fastapi\routing.py:330: in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\starlette\concurrency.py:32: in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\anyio\to_thread.py:63: in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+venv\Lib\site-packages\anyio\_backends\_asyncio.py:2518: in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+venv\Lib\site-packages\anyio\_backends\_asyncio.py:1002: in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+app\api\api_dreams.py:114: in delete
+    if dream.author_id != current_user.username and current_user.role != 'superuser':
+       ^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = Dream(id=1, description='Test Description None', author=UserProfile(username='john.doe', role='user', bio=None), created_at='2026-05-05T12:50:29.002114Z', favorited_by=[], favorites_count=0)
+item = 'author_id'
+
+    def __getattr__(self, item: str) -> Any:
+        private_attributes = object.__getattribute__(self, '__private_attributes__')
+        if item in private_attributes:
+            attribute = private_attributes[item]
+            if hasattr(attribute, '__get__'):
+                return attribute.__get__(self, type(self))  # type: ignore
+    
+            try:
+                # Note: self.__pydantic_private__ cannot be None if self.__private_attributes__ has items
+                return self.__pydantic_private__[item]  # type: ignore
+            except KeyError as exc:
+                raise AttributeError(f'{type(self).__name__!r} object has no attribute {item!r}') from exc
+        else:
+            # `__pydantic_extra__` can fail to be set if the model is not yet fully initialized.
+            # See `BaseModel.__repr_args__` for more details
+            try:
+                pydantic_extra = object.__getattribute__(self, '__pydantic_extra__')
+            except AttributeError:
+                pydantic_extra = None
+    
+            if pydantic_extra and item in pydantic_extra:
+                return pydantic_extra[item]
+            else:
+                if hasattr(self.__class__, item):
+                    return super().__getattribute__(item)  # Raises AttributeError if appropriate
+                else:
+                    # this is the current error
+>                   raise AttributeError(f'{type(self).__name__!r} object has no attribute {item!r}')
+E                   AttributeError: 'Dream' object has no attribute 'author_id'. Did you mean: 'author'?
+
+venv\Lib\site-packages\pydantic\main.py:1042: AttributeError
+___________________________ test_can_favorite_dream ___________________________
+
+client = <starlette.testclient.TestClient object at 0x00000598B0243850>
+session = <sqlalchemy.orm.session.Session object at 0x00000598B01C1B10>
+
+    def test_can_favorite_dream(client: TestClient, session: Session) -> None:
+    	john = acting_as_john(session, client)
+    
+    	john_dream = generate_dream(john, id=1)
+    	session.add(john_dream)
+    	session.commit()
+    	session.close()
+    
+>   	r = client.post('/dreams/1/favorite')
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\api\dreams\test_dreams_favorite.py:38: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+venv\Lib\site-packages\starlette\testclient.py:546: in post
+    return super().post(
+venv\Lib\site-packages\httpx\_client.py:1144: in post
+    return self.request(
+venv\Lib\site-packages\starlette\testclient.py:445: in request
+    return super().request(
+venv\Lib\site-packages\httpx\_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\httpx\_client.py:914: in send
+    response = self._send_handling_auth(
+venv\Lib\site-packages\httpx\_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+venv\Lib\site-packages\httpx\_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\httpx\_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\starlette\testclient.py:348: in handle_request
+    raise exc
+venv\Lib\site-packages\starlette\testclient.py:345: in handle_request
+    portal.call(self.app, scope, receive, send)
+venv\Lib\site-packages\anyio\from_thread.py:334: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Program Files\Python\Lib\concurrent\futures\_base.py:450: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+C:\Program Files\Python\Lib\concurrent\futures\_base.py:395: in __get_result
+    raise self._exception
+venv\Lib\site-packages\anyio\from_thread.py:259: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\fastapi\applications.py:1159: in __call__
+    await super().__call__(scope, receive, send)
+venv\Lib\site-packages\starlette\applications.py:90: in __call__
+    await self.middleware_stack(scope, receive, send)
+venv\Lib\site-packages\starlette\middleware\errors.py:186: in __call__
+    raise exc
+venv\Lib\site-packages\starlette\middleware\errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+venv\Lib\site-packages\starlette\middleware\exceptions.py:63: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+venv\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+venv\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py:18: in __call__
+    await self.app(scope, receive, send)
+venv\Lib\site-packages\starlette\routing.py:660: in __call__
+    await self.middleware_stack(scope, receive, send)
+venv\Lib\site-packages\starlette\routing.py:680: in app
+    await route.handle(scope, receive, send)
+venv\Lib\site-packages\starlette\routing.py:276: in handle
+    await self.app(scope, receive, send)
+venv\Lib\site-packages\fastapi\routing.py:134: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+venv\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+venv\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+venv\Lib\site-packages\fastapi\routing.py:120: in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\fastapi\routing.py:695: in app
+    content = await serialize_response(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    async def serialize_response(
+        *,
+        field: ModelField | None = None,
+        response_content: Any,
+        include: IncEx | None = None,
+        exclude: IncEx | None = None,
+        by_alias: bool = True,
+        exclude_unset: bool = False,
+        exclude_defaults: bool = False,
+        exclude_none: bool = False,
+        is_coroutine: bool = True,
+        endpoint_ctx: EndpointContext | None = None,
+        dump_json: bool = False,
+    ) -> Any:
+        if field:
+            if is_coroutine:
+                value, errors = field.validate(response_content, {}, loc=("response",))
+            else:
+                value, errors = await run_in_threadpool(
+                    field.validate, response_content, {}, loc=("response",)
+                )
+            if errors:
+                ctx = endpoint_ctx or EndpointContext()
+>               raise ResponseValidationError(
+                    errors=errors,
+                    body=response_content,
+                    endpoint_ctx=ctx,
+                )
+E               fastapi.exceptions.ResponseValidationError: 4 validation errors:
+E                 {'type': 'missing', 'loc': ('response', 'author', 'role'), 'msg': 'Field required', 'input': {'username': 'john.doe'}}
+E                 {'type': 'missing', 'loc': ('response', 'author', 'bio'), 'msg': 'Field required', 'input': {'username': 'john.doe'}}
+E                 {'type': 'string_pattern_mismatch', 'loc': ('response', 'created_at'), 'msg': "String should match pattern '^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$'", 'input': '2026-05-05T12:50:29.452354+00:00Z', 'ctx': {'pattern': '^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$'}}
+E                 {'type': 'model_attributes_type', 'loc': ('response', 'favorited_by', 0), 'msg': 'Input should be a valid dictionary or object to extract fields from', 'input': 'john.doe'}
+E               
+E                 File "D:\Indev\ithub-python-project-3\app\api\api_dreams.py", line 120, in favorite
+E                   POST /dreams/{id}/favorite
+
+venv\Lib\site-packages\fastapi\routing.py:300: ResponseValidationError
+__________________________ test_can_unfavorite_dream __________________________
+
+client = <starlette.testclient.TestClient object at 0x00000598B02449D0>
+session = <sqlalchemy.orm.session.Session object at 0x00000598B01C2010>
+
+    def test_can_unfavorite_dream(client: TestClient, session: Session) -> None:
+    	jane = create_jane_user(session)
+    	john = acting_as_john(session, client)
+    
+    	assert jane is not None
+    	assert john is not None
+    
+    	jane_dream = generate_dream(jane, id=1)
+    	jane_dream.favorited_by.append(john)
+    	session.add(jane_dream)
+    	session.commit()
+    
+>   	r = client.delete('/dreams/1/favorite')
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\api\dreams\test_dreams_favorite.py:63: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+venv\Lib\site-packages\starlette\testclient.py:635: in delete
+    return super().delete(
+venv\Lib\site-packages\httpx\_client.py:1251: in delete
+    return self.request(
+venv\Lib\site-packages\starlette\testclient.py:445: in request
+    return super().request(
+venv\Lib\site-packages\httpx\_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\httpx\_client.py:914: in send
+    response = self._send_handling_auth(
+venv\Lib\site-packages\httpx\_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+venv\Lib\site-packages\httpx\_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\httpx\_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\starlette\testclient.py:348: in handle_request
+    raise exc
+venv\Lib\site-packages\starlette\testclient.py:345: in handle_request
+    portal.call(self.app, scope, receive, send)
+venv\Lib\site-packages\anyio\from_thread.py:334: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Program Files\Python\Lib\concurrent\futures\_base.py:450: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+C:\Program Files\Python\Lib\concurrent\futures\_base.py:395: in __get_result
+    raise self._exception
+venv\Lib\site-packages\anyio\from_thread.py:259: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\fastapi\applications.py:1159: in __call__
+    await super().__call__(scope, receive, send)
+venv\Lib\site-packages\starlette\applications.py:90: in __call__
+    await self.middleware_stack(scope, receive, send)
+venv\Lib\site-packages\starlette\middleware\errors.py:186: in __call__
+    raise exc
+venv\Lib\site-packages\starlette\middleware\errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+venv\Lib\site-packages\starlette\middleware\exceptions.py:63: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+venv\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+venv\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py:18: in __call__
+    await self.app(scope, receive, send)
+venv\Lib\site-packages\starlette\routing.py:660: in __call__
+    await self.middleware_stack(scope, receive, send)
+venv\Lib\site-packages\starlette\routing.py:680: in app
+    await route.handle(scope, receive, send)
+venv\Lib\site-packages\starlette\routing.py:276: in handle
+    await self.app(scope, receive, send)
+venv\Lib\site-packages\fastapi\routing.py:134: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+venv\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+venv\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+venv\Lib\site-packages\fastapi\routing.py:120: in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\fastapi\routing.py:695: in app
+    content = await serialize_response(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    async def serialize_response(
+        *,
+        field: ModelField | None = None,
+        response_content: Any,
+        include: IncEx | None = None,
+        exclude: IncEx | None = None,
+        by_alias: bool = True,
+        exclude_unset: bool = False,
+        exclude_defaults: bool = False,
+        exclude_none: bool = False,
+        is_coroutine: bool = True,
+        endpoint_ctx: EndpointContext | None = None,
+        dump_json: bool = False,
+    ) -> Any:
+        if field:
+            if is_coroutine:
+                value, errors = field.validate(response_content, {}, loc=("response",))
+            else:
+                value, errors = await run_in_threadpool(
+                    field.validate, response_content, {}, loc=("response",)
+                )
+            if errors:
+                ctx = endpoint_ctx or EndpointContext()
+>               raise ResponseValidationError(
+                    errors=errors,
+                    body=response_content,
+                    endpoint_ctx=ctx,
+                )
+E               fastapi.exceptions.ResponseValidationError: 3 validation errors:
+E                 {'type': 'missing', 'loc': ('response', 'author', 'role'), 'msg': 'Field required', 'input': {'username': 'jane.doe'}}
+E                 {'type': 'missing', 'loc': ('response', 'author', 'bio'), 'msg': 'Field required', 'input': {'username': 'jane.doe'}}
+E                 {'type': 'string_pattern_mismatch', 'loc': ('response', 'created_at'), 'msg': "String should match pattern '^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$'", 'input': '2026-05-05T12:50:29.769391+00:00Z', 'ctx': {'pattern': '^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$'}}
+E               
+E                 File "D:\Indev\ithub-python-project-3\app\api\api_dreams.py", line 148, in unfavorite
+E                   DELETE /dreams/{id}/favorite
+
+venv\Lib\site-packages\fastapi\routing.py:300: ResponseValidationError
+_____________________________ test_can_get_dream ______________________________
+
+client = <starlette.testclient.TestClient object at 0x00000598B0245A10>
+session = <sqlalchemy.orm.session.Session object at 0x00000598B01C1C10>
+
+    def test_can_get_dream(client: TestClient, session: Session) -> None:
+    	john = acting_as_john(session, client)
+    
+    	db_obj = generate_dream(john, id=1)
+    	session.add(db_obj)
+    	session.commit()
+    
+>   	r = client.get('/dreams/1')
+         ^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\api\dreams\test_dreams_get.py:20: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+venv\Lib\site-packages\starlette\testclient.py:473: in get
+    return super().get(
+venv\Lib\site-packages\httpx\_client.py:1053: in get
+    return self.request(
+venv\Lib\site-packages\starlette\testclient.py:445: in request
+    return super().request(
+venv\Lib\site-packages\httpx\_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\httpx\_client.py:914: in send
+    response = self._send_handling_auth(
+venv\Lib\site-packages\httpx\_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+venv\Lib\site-packages\httpx\_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\httpx\_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\starlette\testclient.py:348: in handle_request
+    raise exc
+venv\Lib\site-packages\starlette\testclient.py:345: in handle_request
+    portal.call(self.app, scope, receive, send)
+venv\Lib\site-packages\anyio\from_thread.py:334: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Program Files\Python\Lib\concurrent\futures\_base.py:450: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+C:\Program Files\Python\Lib\concurrent\futures\_base.py:395: in __get_result
+    raise self._exception
+venv\Lib\site-packages\anyio\from_thread.py:259: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\fastapi\applications.py:1159: in __call__
+    await super().__call__(scope, receive, send)
+venv\Lib\site-packages\starlette\applications.py:90: in __call__
+    await self.middleware_stack(scope, receive, send)
+venv\Lib\site-packages\starlette\middleware\errors.py:186: in __call__
+    raise exc
+venv\Lib\site-packages\starlette\middleware\errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+venv\Lib\site-packages\starlette\middleware\exceptions.py:63: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+venv\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+venv\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py:18: in __call__
+    await self.app(scope, receive, send)
+venv\Lib\site-packages\starlette\routing.py:660: in __call__
+    await self.middleware_stack(scope, receive, send)
+venv\Lib\site-packages\starlette\routing.py:680: in app
+    await route.handle(scope, receive, send)
+venv\Lib\site-packages\starlette\routing.py:276: in handle
+    await self.app(scope, receive, send)
+venv\Lib\site-packages\fastapi\routing.py:134: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+venv\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+venv\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+venv\Lib\site-packages\fastapi\routing.py:120: in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\fastapi\routing.py:695: in app
+    content = await serialize_response(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    async def serialize_response(
+        *,
+        field: ModelField | None = None,
+        response_content: Any,
+        include: IncEx | None = None,
+        exclude: IncEx | None = None,
+        by_alias: bool = True,
+        exclude_unset: bool = False,
+        exclude_defaults: bool = False,
+        exclude_none: bool = False,
+        is_coroutine: bool = True,
+        endpoint_ctx: EndpointContext | None = None,
+        dump_json: bool = False,
+    ) -> Any:
+        if field:
+            if is_coroutine:
+                value, errors = field.validate(response_content, {}, loc=("response",))
+            else:
+                value, errors = await run_in_threadpool(
+                    field.validate, response_content, {}, loc=("response",)
+                )
+            if errors:
+                ctx = endpoint_ctx or EndpointContext()
+>               raise ResponseValidationError(
+                    errors=errors,
+                    body=response_content,
+                    endpoint_ctx=ctx,
+                )
+E               fastapi.exceptions.ResponseValidationError: 3 validation errors:
+E                 {'type': 'missing', 'loc': ('response', 'author', 'role'), 'msg': 'Field required', 'input': {'username': 'john.doe'}}
+E                 {'type': 'missing', 'loc': ('response', 'author', 'bio'), 'msg': 'Field required', 'input': {'username': 'john.doe'}}
+E                 {'type': 'string_pattern_mismatch', 'loc': ('response', 'created_at'), 'msg': "String should match pattern '^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$'", 'input': '2026-05-05T12:50:30.087685+00:00Z', 'ctx': {'pattern': '^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$'}}
+E               
+E                 File "D:\Indev\ithub-python-project-3\app\api\api_dreams.py", line 70, in get_dream
+E                   GET /dreams/{id}
+
+venv\Lib\site-packages\fastapi\routing.py:300: ResponseValidationError
+__________________________ test_can_paginate_dreams ___________________________
+
+client = <starlette.testclient.TestClient object at 0x00000598B0245010>
+session = <sqlalchemy.orm.session.Session object at 0x00000598B01C1F10>
+
+    def test_can_paginate_dreams(client: TestClient, session: Session) -> None:
+    	generate_dreams(session)
+    
+>   	r = client.get('/dreams?limit=10&offset=20')
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\api\dreams\test_dreams_list.py:13: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+venv\Lib\site-packages\starlette\testclient.py:473: in get
+    return super().get(
+venv\Lib\site-packages\httpx\_client.py:1053: in get
+    return self.request(
+venv\Lib\site-packages\starlette\testclient.py:445: in request
+    return super().request(
+venv\Lib\site-packages\httpx\_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\httpx\_client.py:914: in send
+    response = self._send_handling_auth(
+venv\Lib\site-packages\httpx\_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+venv\Lib\site-packages\httpx\_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\httpx\_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\starlette\testclient.py:348: in handle_request
+    raise exc
+venv\Lib\site-packages\starlette\testclient.py:345: in handle_request
+    portal.call(self.app, scope, receive, send)
+venv\Lib\site-packages\anyio\from_thread.py:334: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Program Files\Python\Lib\concurrent\futures\_base.py:450: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+C:\Program Files\Python\Lib\concurrent\futures\_base.py:395: in __get_result
+    raise self._exception
+venv\Lib\site-packages\anyio\from_thread.py:259: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\fastapi\applications.py:1159: in __call__
+    await super().__call__(scope, receive, send)
+venv\Lib\site-packages\starlette\applications.py:90: in __call__
+    await self.middleware_stack(scope, receive, send)
+venv\Lib\site-packages\starlette\middleware\errors.py:186: in __call__
+    raise exc
+venv\Lib\site-packages\starlette\middleware\errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+venv\Lib\site-packages\starlette\middleware\exceptions.py:63: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+venv\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+venv\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py:18: in __call__
+    await self.app(scope, receive, send)
+venv\Lib\site-packages\starlette\routing.py:660: in __call__
+    await self.middleware_stack(scope, receive, send)
+venv\Lib\site-packages\starlette\routing.py:680: in app
+    await route.handle(scope, receive, send)
+venv\Lib\site-packages\starlette\routing.py:276: in handle
+    await self.app(scope, receive, send)
+venv\Lib\site-packages\fastapi\routing.py:134: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+venv\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+venv\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+venv\Lib\site-packages\fastapi\routing.py:120: in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\fastapi\routing.py:674: in app
+    raw_response = await run_endpoint_function(
+venv\Lib\site-packages\fastapi\routing.py:330: in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\starlette\concurrency.py:32: in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\anyio\to_thread.py:63: in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+venv\Lib\site-packages\anyio\_backends\_asyncio.py:2518: in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+venv\Lib\site-packages\anyio\_backends\_asyncio.py:1002: in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+session = <sqlalchemy.orm.session.Session object at 0x00000598B21A1010>
+limit = 10, offset = 20, author = None, search = None, favorited = None
+
+    @dreams_router.get(
+        '/',
+        summary='Чтение снов',
+        description='Чтение снов с возможностью поиска, фильтрации, пагинации, с сортировкой по времени добавления',
+        response_model=schema.MultipleDreams,
+        responses={
+            status.HTTP_422_UNPROCESSABLE_CONTENT: {"description": "Параметры запроса не валидные"}
+        }
+    )
+    def get_dreams_list(
+        session: SessionDatabase,
+        limit: int = Query(20, title='Количество снов (по умолчанию 20)'),
+        offset: int = Query(0, title='Величина отступа (по умолчанию  0)'),
+        author: str = Query(None, title='Фильтр по юзернейму автора'),
+        search: str = Query(None, title='Поиск по тексту'),
+        favorited: str = Query(None, title='Фильтр по любимым снам юзернейма'),
+    ) -> schema.MultipleDreams:
+        dreams = dreamsvc.get_list(session=session, limit=limit, offset=offset,
+                                   author=author, search=search, favorited=favorited)
+    
+        prepared_dreams = [_prepare_dream_response(d) for d in dreams[0]]
+    
+>       return schema.MultipleDreams(dreams=prepared_dreams, dreams_count=dreams[1])
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       pydantic_core._pydantic_core.ValidationError: 30 validation errors for MultipleDreams
+E       dreams.0.author.role
+E         Field required [type=missing, input_value={'username': 'john.doe'}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+E       dreams.0.author.bio
+E         Field required [type=missing, input_value={'username': 'john.doe'}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+E       dreams.0.created_at
+E         String should match pattern '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$' [type=string_pattern_mismatch, input_value='2026-05-05T12:50:30.479335+00:00Z', input_type=str]
+E           For further information visit https://errors.pydantic.dev/2.13/v/string_pattern_mismatch
+E       dreams.1.author.role
+E         Field required [type=missing, input_value={'username': 'john.doe'}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+E       dreams.1.author.bio
+E         Field required [type=missing, input_value={'username': 'john.doe'}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+E       dreams.1.created_at
+E         String should match pattern '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$' [type=string_pattern_mismatch, input_value='2026-05-05T12:50:30.470851+00:00Z', input_type=str]
+E           For further information visit https://errors.pydantic.dev/2.13/v/string_pattern_mismatch
+E       dreams.2.author.role
+E         Field required [type=missing, input_value={'username': 'john.doe'}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+E       dreams.2.author.bio
+E         Field required [type=missing, input_value={'username': 'john.doe'}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+E       dreams.2.created_at
+E         String should match pattern '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$' [type=string_pattern_mismatch, input_value='2026-05-05T12:50:30.463357+00:00Z', input_type=str]
+E           For further information visit https://errors.pydantic.dev/2.13/v/string_pattern_mismatch
+E       dreams.3.author.role
+E         Field required [type=missing, input_value={'username': 'john.doe'}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+E       dreams.3.author.bio
+E         Field required [type=missing, input_value={'username': 'john.doe'}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+E       dreams.3.created_at
+E         String should match pattern '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$' [type=string_pattern_mismatch, input_value='2026-05-05T12:50:30.451855+00:00Z', input_type=str]
+E           For further information visit https://errors.pydantic.dev/2.13/v/string_pattern_mismatch
+E       dreams.4.author.role
+E         Field required [type=missing, input_value={'username': 'john.doe'}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+E       dreams.4.author.bio
+E         Field required [type=missing, input_value={'username': 'john.doe'}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+E       dreams.4.created_at
+E         String should match pattern '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$' [type=string_pattern_mismatch, input_value='2026-05-05T12:50:30.443908+00:00Z', input_type=str]
+E           For further information visit https://errors.pydantic.dev/2.13/v/string_pattern_mismatch
+E       dreams.5.author.role
+E         Field required [type=missing, input_value={'username': 'john.doe'}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+E       dreams.5.author.bio
+E         Field required [type=missing, input_value={'username': 'john.doe'}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+E       dreams.5.created_at
+E         String should match pattern '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$' [type=string_pattern_mismatch, input_value='2026-05-05T12:50:30.436150+00:00Z', input_type=str]
+E           For further information visit https://errors.pydantic.dev/2.13/v/string_pattern_mismatch
+E       dreams.6.author.role
+E         Field required [type=missing, input_value={'username': 'john.doe'}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+E       dreams.6.author.bio
+E         Field required [type=missing, input_value={'username': 'john.doe'}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+E       dreams.6.created_at
+E         String should match pattern '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$' [type=string_pattern_mismatch, input_value='2026-05-05T12:50:30.428976+00:00Z', input_type=str]
+E           For further information visit https://errors.pydantic.dev/2.13/v/string_pattern_mismatch
+E       dreams.7.author.role
+E         Field required [type=missing, input_value={'username': 'john.doe'}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+E       dreams.7.author.bio
+E         Field required [type=missing, input_value={'username': 'john.doe'}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+E       dreams.7.created_at
+E         String should match pattern '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$' [type=string_pattern_mismatch, input_value='2026-05-05T12:50:30.422764+00:00Z', input_type=str]
+E           For further information visit https://errors.pydantic.dev/2.13/v/string_pattern_mismatch
+E       dreams.8.author.role
+E         Field required [type=missing, input_value={'username': 'john.doe'}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+E       dreams.8.author.bio
+E         Field required [type=missing, input_value={'username': 'john.doe'}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+E       dreams.8.created_at
+E         String should match pattern '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$' [type=string_pattern_mismatch, input_value='2026-05-05T12:50:30.416832+00:00Z', input_type=str]
+E           For further information visit https://errors.pydantic.dev/2.13/v/string_pattern_mismatch
+E       dreams.9.author.role
+E         Field required [type=missing, input_value={'username': 'john.doe'}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+E       dreams.9.author.bio
+E         Field required [type=missing, input_value={'username': 'john.doe'}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+E       dreams.9.created_at
+E         String should match pattern '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$' [type=string_pattern_mismatch, input_value='2026-05-05T12:50:30.410789+00:00Z', input_type=str]
+E           For further information visit https://errors.pydantic.dev/2.13/v/string_pattern_mismatch
+
+app\api\api_dreams.py:46: ValidationError
+______________________ test_can_filter_dreams_by_author _______________________
+
+client = <starlette.testclient.TestClient object at 0x00000598B024B050>
+session = <sqlalchemy.orm.session.Session object at 0x00000598B01C2A10>
+
+    def test_can_filter_dreams_by_author(client: TestClient, session: Session) -> None:
+    	generate_dreams(session)
+    
+>   	r = client.get('/dreams?limit=10&offset=0&author=john')
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\api\dreams\test_dreams_list.py:39: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+venv\Lib\site-packages\starlette\testclient.py:473: in get
+    return super().get(
+venv\Lib\site-packages\httpx\_client.py:1053: in get
+    return self.request(
+venv\Lib\site-packages\starlette\testclient.py:445: in request
+    return super().request(
+venv\Lib\site-packages\httpx\_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\httpx\_client.py:914: in send
+    response = self._send_handling_auth(
+venv\Lib\site-packages\httpx\_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+venv\Lib\site-packages\httpx\_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\httpx\_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\starlette\testclient.py:348: in handle_request
+    raise exc
+venv\Lib\site-packages\starlette\testclient.py:345: in handle_request
+    portal.call(self.app, scope, receive, send)
+venv\Lib\site-packages\anyio\from_thread.py:334: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Program Files\Python\Lib\concurrent\futures\_base.py:450: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+C:\Program Files\Python\Lib\concurrent\futures\_base.py:395: in __get_result
+    raise self._exception
+venv\Lib\site-packages\anyio\from_thread.py:259: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\fastapi\applications.py:1159: in __call__
+    await super().__call__(scope, receive, send)
+venv\Lib\site-packages\starlette\applications.py:90: in __call__
+    await self.middleware_stack(scope, receive, send)
+venv\Lib\site-packages\starlette\middleware\errors.py:186: in __call__
+    raise exc
+venv\Lib\site-packages\starlette\middleware\errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+venv\Lib\site-packages\starlette\middleware\exceptions.py:63: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+venv\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+venv\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py:18: in __call__
+    await self.app(scope, receive, send)
+venv\Lib\site-packages\starlette\routing.py:660: in __call__
+    await self.middleware_stack(scope, receive, send)
+venv\Lib\site-packages\starlette\routing.py:680: in app
+    await route.handle(scope, receive, send)
+venv\Lib\site-packages\starlette\routing.py:276: in handle
+    await self.app(scope, receive, send)
+venv\Lib\site-packages\fastapi\routing.py:134: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+venv\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+venv\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+venv\Lib\site-packages\fastapi\routing.py:120: in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\fastapi\routing.py:674: in app
+    raw_response = await run_endpoint_function(
+venv\Lib\site-packages\fastapi\routing.py:330: in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\starlette\concurrency.py:32: in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\anyio\to_thread.py:63: in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+venv\Lib\site-packages\anyio\_backends\_asyncio.py:2518: in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+venv\Lib\site-packages\anyio\_backends\_asyncio.py:1002: in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+session = <sqlalchemy.orm.session.Session object at 0x00000598B21A0410>
+limit = 10, offset = 0, author = 'john', search = None, favorited = None
+
+    @dreams_router.get(
+        '/',
+        summary='Чтение снов',
+        description='Чтение снов с возможностью поиска, фильтрации, пагинации, с сортировкой по времени добавления',
+        response_model=schema.MultipleDreams,
+        responses={
+            status.HTTP_422_UNPROCESSABLE_CONTENT: {"description": "Параметры запроса не валидные"}
+        }
+    )
+    def get_dreams_list(
+        session: SessionDatabase,
+        limit: int = Query(20, title='Количество снов (по умолчанию 20)'),
+        offset: int = Query(0, title='Величина отступа (по умолчанию  0)'),
+        author: str = Query(None, title='Фильтр по юзернейму автора'),
+        search: str = Query(None, title='Поиск по тексту'),
+        favorited: str = Query(None, title='Фильтр по любимым снам юзернейма'),
+    ) -> schema.MultipleDreams:
+        dreams = dreamsvc.get_list(session=session, limit=limit, offset=offset,
+                                   author=author, search=search, favorited=favorited)
+    
+        prepared_dreams = [_prepare_dream_response(d) for d in dreams[0]]
+    
+>       return schema.MultipleDreams(dreams=prepared_dreams, dreams_count=dreams[1])
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       pydantic_core._pydantic_core.ValidationError: 30 validation errors for MultipleDreams
+E       dreams.0.author.role
+E         Field required [type=missing, input_value={'username': 'john.doe'}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+E       dreams.0.author.bio
+E         Field required [type=missing, input_value={'username': 'john.doe'}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+E       dreams.0.created_at
+E         String should match pattern '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$' [type=string_pattern_mismatch, input_value='2026-05-05T12:50:31.055817+00:00Z', input_type=str]
+E           For further information visit https://errors.pydantic.dev/2.13/v/string_pattern_mismatch
+E       dreams.1.author.role
+E         Field required [type=missing, input_value={'username': 'john.doe'}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+E       dreams.1.author.bio
+E         Field required [type=missing, input_value={'username': 'john.doe'}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+E       dreams.1.created_at
+E         String should match pattern '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$' [type=string_pattern_mismatch, input_value='2026-05-05T12:50:31.049971+00:00Z', input_type=str]
+E           For further information visit https://errors.pydantic.dev/2.13/v/string_pattern_mismatch
+E       dreams.2.author.role
+E         Field required [type=missing, input_value={'username': 'john.doe'}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+E       dreams.2.author.bio
+E         Field required [type=missing, input_value={'username': 'john.doe'}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+E       dreams.2.created_at
+E         String should match pattern '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$' [type=string_pattern_mismatch, input_value='2026-05-05T12:50:31.044028+00:00Z', input_type=str]
+E           For further information visit https://errors.pydantic.dev/2.13/v/string_pattern_mismatch
+E       dreams.3.author.role
+E         Field required [type=missing, input_value={'username': 'john.doe'}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+E       dreams.3.author.bio
+E         Field required [type=missing, input_value={'username': 'john.doe'}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+E       dreams.3.created_at
+E         String should match pattern '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$' [type=string_pattern_mismatch, input_value='2026-05-05T12:50:31.037891+00:00Z', input_type=str]
+E           For further information visit https://errors.pydantic.dev/2.13/v/string_pattern_mismatch
+E       dreams.4.author.role
+E         Field required [type=missing, input_value={'username': 'john.doe'}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+E       dreams.4.author.bio
+E         Field required [type=missing, input_value={'username': 'john.doe'}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+E       dreams.4.created_at
+E         String should match pattern '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$' [type=string_pattern_mismatch, input_value='2026-05-05T12:50:31.032202+00:00Z', input_type=str]
+E           For further information visit https://errors.pydantic.dev/2.13/v/string_pattern_mismatch
+E       dreams.5.author.role
+E         Field required [type=missing, input_value={'username': 'john.doe'}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+E       dreams.5.author.bio
+E         Field required [type=missing, input_value={'username': 'john.doe'}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+E       dreams.5.created_at
+E         String should match pattern '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$' [type=string_pattern_mismatch, input_value='2026-05-05T12:50:31.026498+00:00Z', input_type=str]
+E           For further information visit https://errors.pydantic.dev/2.13/v/string_pattern_mismatch
+E       dreams.6.author.role
+E         Field required [type=missing, input_value={'username': 'john.doe'}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+E       dreams.6.author.bio
+E         Field required [type=missing, input_value={'username': 'john.doe'}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+E       dreams.6.created_at
+E         String should match pattern '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$' [type=string_pattern_mismatch, input_value='2026-05-05T12:50:31.020231+00:00Z', input_type=str]
+E           For further information visit https://errors.pydantic.dev/2.13/v/string_pattern_mismatch
+E       dreams.7.author.role
+E         Field required [type=missing, input_value={'username': 'john.doe'}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+E       dreams.7.author.bio
+E         Field required [type=missing, input_value={'username': 'john.doe'}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+E       dreams.7.created_at
+E         String should match pattern '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$' [type=string_pattern_mismatch, input_value='2026-05-05T12:50:31.014301+00:00Z', input_type=str]
+E           For further information visit https://errors.pydantic.dev/2.13/v/string_pattern_mismatch
+E       dreams.8.author.role
+E         Field required [type=missing, input_value={'username': 'john.doe'}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+E       dreams.8.author.bio
+E         Field required [type=missing, input_value={'username': 'john.doe'}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+E       dreams.8.created_at
+E         String should match pattern '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$' [type=string_pattern_mismatch, input_value='2026-05-05T12:50:31.007318+00:00Z', input_type=str]
+E           For further information visit https://errors.pydantic.dev/2.13/v/string_pattern_mismatch
+E       dreams.9.author.role
+E         Field required [type=missing, input_value={'username': 'john.doe'}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+E       dreams.9.author.bio
+E         Field required [type=missing, input_value={'username': 'john.doe'}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+E       dreams.9.created_at
+E         String should match pattern '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$' [type=string_pattern_mismatch, input_value='2026-05-05T12:50:31.001100+00:00Z', input_type=str]
+E           For further information visit https://errors.pydantic.dev/2.13/v/string_pattern_mismatch
+
+app\api\api_dreams.py:46: ValidationError
+_____________________ test_can_filter_dreams_by_favorited _____________________
+
+client = <starlette.testclient.TestClient object at 0x00000598B024A8D0>
+session = <sqlalchemy.orm.session.Session object at 0x00000598B01C3010>
+
+    def test_can_filter_dreams_by_favorited(client: TestClient, session: Session) -> None:
+    	john = generate_dreams(session)
+    	acting_as_user(john, client)
+    
+>   	r = client.get('/dreams?limit=10&offset=0&favorited=john')
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\api\dreams\test_dreams_list.py:66: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+venv\Lib\site-packages\starlette\testclient.py:473: in get
+    return super().get(
+venv\Lib\site-packages\httpx\_client.py:1053: in get
+    return self.request(
+venv\Lib\site-packages\starlette\testclient.py:445: in request
+    return super().request(
+venv\Lib\site-packages\httpx\_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\httpx\_client.py:914: in send
+    response = self._send_handling_auth(
+venv\Lib\site-packages\httpx\_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+venv\Lib\site-packages\httpx\_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\httpx\_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\starlette\testclient.py:348: in handle_request
+    raise exc
+venv\Lib\site-packages\starlette\testclient.py:345: in handle_request
+    portal.call(self.app, scope, receive, send)
+venv\Lib\site-packages\anyio\from_thread.py:334: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Program Files\Python\Lib\concurrent\futures\_base.py:450: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+C:\Program Files\Python\Lib\concurrent\futures\_base.py:395: in __get_result
+    raise self._exception
+venv\Lib\site-packages\anyio\from_thread.py:259: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\fastapi\applications.py:1159: in __call__
+    await super().__call__(scope, receive, send)
+venv\Lib\site-packages\starlette\applications.py:90: in __call__
+    await self.middleware_stack(scope, receive, send)
+venv\Lib\site-packages\starlette\middleware\errors.py:186: in __call__
+    raise exc
+venv\Lib\site-packages\starlette\middleware\errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+venv\Lib\site-packages\starlette\middleware\exceptions.py:63: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+venv\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+venv\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py:18: in __call__
+    await self.app(scope, receive, send)
+venv\Lib\site-packages\starlette\routing.py:660: in __call__
+    await self.middleware_stack(scope, receive, send)
+venv\Lib\site-packages\starlette\routing.py:680: in app
+    await route.handle(scope, receive, send)
+venv\Lib\site-packages\starlette\routing.py:276: in handle
+    await self.app(scope, receive, send)
+venv\Lib\site-packages\fastapi\routing.py:134: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+venv\Lib\site-packages\starlette\_exception_handler.py:53: in wrapped_app
+    raise exc
+venv\Lib\site-packages\starlette\_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+venv\Lib\site-packages\fastapi\routing.py:120: in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\fastapi\routing.py:674: in app
+    raw_response = await run_endpoint_function(
+venv\Lib\site-packages\fastapi\routing.py:330: in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\starlette\concurrency.py:32: in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+venv\Lib\site-packages\anyio\to_thread.py:63: in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+venv\Lib\site-packages\anyio\_backends\_asyncio.py:2518: in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+venv\Lib\site-packages\anyio\_backends\_asyncio.py:1002: in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+session = <sqlalchemy.orm.session.Session object at 0x00000598B21A0C10>
+limit = 10, offset = 0, author = None, search = None, favorited = 'john'
+
+    @dreams_router.get(
+        '/',
+        summary='Чтение снов',
+        description='Чтение снов с возможностью поиска, фильтрации, пагинации, с сортировкой по времени добавления',
+        response_model=schema.MultipleDreams,
+        responses={
+            status.HTTP_422_UNPROCESSABLE_CONTENT: {"description": "Параметры запроса не валидные"}
+        }
+    )
+    def get_dreams_list(
+        session: SessionDatabase,
+        limit: int = Query(20, title='Количество снов (по умолчанию 20)'),
+        offset: int = Query(0, title='Величина отступа (по умолчанию  0)'),
+        author: str = Query(None, title='Фильтр по юзернейму автора'),
+        search: str = Query(None, title='Поиск по тексту'),
+        favorited: str = Query(None, title='Фильтр по любимым снам юзернейма'),
+    ) -> schema.MultipleDreams:
+        dreams = dreamsvc.get_list(session=session, limit=limit, offset=offset,
+                                   author=author, search=search, favorited=favorited)
+    
+        prepared_dreams = [_prepare_dream_response(d) for d in dreams[0]]
+    
+>       return schema.MultipleDreams(dreams=prepared_dreams, dreams_count=dreams[1])
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       pydantic_core._pydantic_core.ValidationError: 20 validation errors for MultipleDreams
+E       dreams.0.author.role
+E         Field required [type=missing, input_value={'username': 'jane.doe'}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+E       dreams.0.author.bio
+E         Field required [type=missing, input_value={'username': 'jane.doe'}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+E       dreams.0.created_at
+E         String should match pattern '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$' [type=string_pattern_mismatch, input_value='2026-05-05T12:50:31.714492+00:00Z', input_type=str]
+E           For further information visit https://errors.pydantic.dev/2.13/v/string_pattern_mismatch
+E       dreams.0.favorited_by.0
+E         Input should be a valid dictionary or object to extract fields from [type=model_attributes_type, input_value='john.doe', input_type=str]
+E           For further information visit https://errors.pydantic.dev/2.13/v/model_attributes_type
+E       dreams.1.author.role
+E         Field required [type=missing, input_value={'username': 'jane.doe'}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+E       dreams.1.author.bio
+E         Field required [type=missing, input_value={'username': 'jane.doe'}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+E       dreams.1.created_at
+E         String should match pattern '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$' [type=string_pattern_mismatch, input_value='2026-05-05T12:50:31.701049+00:00Z', input_type=str]
+E           For further information visit https://errors.pydantic.dev/2.13/v/string_pattern_mismatch
+E       dreams.1.favorited_by.0
+E         Input should be a valid dictionary or object to extract fields from [type=model_attributes_type, input_value='john.doe', input_type=str]
+E           For further information visit https://errors.pydantic.dev/2.13/v/model_attributes_type
+E       dreams.2.author.role
+E         Field required [type=missing, input_value={'username': 'jane.doe'}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+E       dreams.2.author.bio
+E         Field required [type=missing, input_value={'username': 'jane.doe'}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+E       dreams.2.created_at
+E         String should match pattern '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$' [type=string_pattern_mismatch, input_value='2026-05-05T12:50:31.688682+00:00Z', input_type=str]
+E           For further information visit https://errors.pydantic.dev/2.13/v/string_pattern_mismatch
+E       dreams.2.favorited_by.0
+E         Input should be a valid dictionary or object to extract fields from [type=model_attributes_type, input_value='john.doe', input_type=str]
+E           For further information visit https://errors.pydantic.dev/2.13/v/model_attributes_type
+E       dreams.3.author.role
+E         Field required [type=missing, input_value={'username': 'jane.doe'}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+E       dreams.3.author.bio
+E         Field required [type=missing, input_value={'username': 'jane.doe'}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+E       dreams.3.created_at
+E         String should match pattern '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$' [type=string_pattern_mismatch, input_value='2026-05-05T12:50:31.674823+00:00Z', input_type=str]
+E           For further information visit https://errors.pydantic.dev/2.13/v/string_pattern_mismatch
+E       dreams.3.favorited_by.0
+E         Input should be a valid dictionary or object to extract fields from [type=model_attributes_type, input_value='john.doe', input_type=str]
+E           For further information visit https://errors.pydantic.dev/2.13/v/model_attributes_type
+E       dreams.4.author.role
+E         Field required [type=missing, input_value={'username': 'jane.doe'}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+E       dreams.4.author.bio
+E         Field required [type=missing, input_value={'username': 'jane.doe'}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/missing
+E       dreams.4.created_at
+E         String should match pattern '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$' [type=string_pattern_mismatch, input_value='2026-05-05T12:50:31.667788+00:00Z', input_type=str]
+E           For further information visit https://errors.pydantic.dev/2.13/v/string_pattern_mismatch
+E       dreams.4.favorited_by.0
+E         Input should be a valid dictionary or object to extract fields from [type=model_attributes_type, input_value='john.doe', input_type=str]
+E           For further information visit https://errors.pydantic.dev/2.13/v/model_attributes_type
+
+app\api\api_dreams.py:46: ValidationError
+============================== warnings summary ===============================
+<frozen importlib._bootstrap>:491
+  <frozen importlib._bootstrap>:491: RuntimeWarning: The global interpreter lock (GIL) has been enabled to load module 'sqlalchemy.cyextension.collections', which has not declared that it can run safely without the GIL. To override this behavior and keep the GIL disabled (at your own risk), run with PYTHON_GIL=0 or -Xgil=0.
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
 =========================== short test summary info ===========================
 FAILED tests/api/dreams/test_dreams_create.py::test_cannot_create_dream_with_same_description
-FAILED tests/api/dreams/test_dreams_create.py::test_can_create_dream - sqlalc...
-ERROR tests/api/dreams/test_dreams_create.py::test_can_create_dream - sqlalch...
-ERROR tests/api/dreams/test_dreams_delete.py::test_guest_cannot_delete_dream
-ERROR tests/api/dreams/test_dreams_delete.py::test_superadmin_can_delete_dreams
-ERROR tests/api/dreams/test_dreams_delete.py::test_cannot_delete_non_existent_dream
-ERROR tests/api/dreams/test_dreams_delete.py::test_cannot_delete_dream_of_other_author
-ERROR tests/api/dreams/test_dreams_delete.py::test_can_delete_own_dream - sql...
-ERROR tests/api/dreams/test_dreams_favorite.py::test_guest_cannot_favorite_dream
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! KeyboardInterrupt !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-E:\Indev\ithub-python-project-3\.venv\Lib\site-packages\sqlalchemy\engine\base.py:2233: KeyboardInterrupt
-(to show a full traceback on KeyboardInterrupt use --full-trace)
-============== 2 failed, 12 passed, 7 errors in 73.70s (0:01:13) ==============
+FAILED tests/api/dreams/test_dreams_create.py::test_can_create_dream - fastap...
+FAILED tests/api/dreams/test_dreams_delete.py::test_cannot_delete_dream_of_other_author
+FAILED tests/api/dreams/test_dreams_delete.py::test_can_delete_own_dream - At...
+FAILED tests/api/dreams/test_dreams_favorite.py::test_can_favorite_dream - fa...
+FAILED tests/api/dreams/test_dreams_favorite.py::test_can_unfavorite_dream - ...
+FAILED tests/api/dreams/test_dreams_get.py::test_can_get_dream - fastapi.exce...
+FAILED tests/api/dreams/test_dreams_list.py::test_can_paginate_dreams - pydan...
+FAILED tests/api/dreams/test_dreams_list.py::test_can_filter_dreams_by_author
+FAILED tests/api/dreams/test_dreams_list.py::test_can_filter_dreams_by_favorited
+================== 10 failed, 24 passed, 1 warning in 6.08s ===================

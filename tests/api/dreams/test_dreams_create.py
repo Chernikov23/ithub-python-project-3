@@ -65,7 +65,7 @@ def test_can_create_dream(client: TestClient, session: Session) -> None:
 		'description': 'Test Description 1',
 		'author': {
 			'username': 'john.doe',
-			'bio': None,
+			'role': 'user'
 		},
 		'favorited_by': [],
 		'favorites_count': 0,
