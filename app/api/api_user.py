@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Body, Path, status
 
 from app import schema
-from app.api.exceptions import CredentialsHTTPException, NotFoundHTTPException
 from app.api.dependencies import CurrentUser, SessionDatabase
-from app.services import users_service
-
+from app.services import users_service as usersvc
+from sqlite3 import Cursor
+from app.api.exceptions import *
 
 users_router = APIRouter(
 	prefix='/users',
@@ -28,7 +28,7 @@ def get_current(
 	ошибки выбрасывает CredentialsHTTPException. Иначе - отвечает согласно схеме.
 	"""
 
-	raise NotImplementedError
+	return current_user
 
 
 @users_router.get(
@@ -51,7 +51,14 @@ def get_by_username(
 	пояснением. Иначе - отвечает согласно схеме.
 	"""
 
-	raise NotImplementedError
+	cursor: Cursor = session.get_bind().raw_connection().cursor()
+
+	user = usersvc.get_by_username(cursor=cursor, username=username)
+
+	if not user:
+		raise NotFoundHTTPException('Имя пользователя не найдено.')
+
+	return user
 
 
 @users_router.put(
@@ -77,5 +84,12 @@ def update_current(
 	с пояснением. Иначе - запрашивает users_service на обновление данных. Возвращает
 	ответ согласно схеме.
 	"""
+
+	cursor: Cursor = session.get_bind().raw_connection().cursor()
+
+	user = usersvc.update(cursor=cursor, username=current_user.username, update_data=update_user_payload)
+
+	if not user:
+		raise NotFoundHTTPException()
 	
-	raise NotImplementedError
+	return user

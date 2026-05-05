@@ -1,9 +1,17 @@
 from datetime import UTC, datetime
-from typing import Literal
+from typing import Literal, Annotated, Optional
 
 from pydantic import BaseModel as PBaseModel
-from pydantic import ConfigDict, Field, computed_field, field_serializer, field_validator
+from pydantic import ConfigDict, computed_field, field_serializer, field_validator, StringConstraints, AfterValidator, Field
 
+
+UsernameType = Annotated[str, StringConstraints(strip_whitespace=True, min_length=3, max_length=32, to_lower=True, pattern=r"^[a-zA-Z0-9.]+$")]
+PasswordType = Annotated[str, StringConstraints(min_length=8, max_length=32, pattern=r"^[a-zA-Z0-9!@#$%&?.]+$")]
+BioType = Annotated[str, StringConstraints(min_length=5, max_length=2048, strip_whitespace=True, pattern=r"^[a-zA-Zа-яА-Я0-9'\".,!@#$%&*()-_=+/~— ]+$")]
+DreamDescriptionType = Annotated[str, StringConstraints(min_length=5, max_length=16384, strip_whitespace=True, pattern=r"^[a-zA-Zа-яА-Я0-9'\".,!@#$%&*()-_=+/~— ]+$")]
+DatetimeType = Annotated[str, StringConstraints(pattern=r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$")]
+UintType = Annotated[int, Field(ge=0)]
+RoleType = Literal['user', 'superuser']
 
 class BaseModel(PBaseModel):
 	'''
@@ -34,7 +42,7 @@ class Username(BaseModel):
 	:username: имя пользователя (строка)
 	"""
 
-	pass
+	username: UsernameType
 
 
 class UserCreate(BaseModel):
@@ -46,6 +54,11 @@ class UserCreate(BaseModel):
 	:bio: биография (опциональное строковое поле) 
 	"""
 
+	username: UsernameType
+	password: PasswordType
+	role: RoleType = 'user'
+	bio: BioType | None = None
+
 	pass
 
 
@@ -56,7 +69,7 @@ class UserUpdate(BaseModel):
 	:bio: биография (опциональное строковое поле)
 	"""
 
-	pass
+	bio: BioType
 
 
 class UserProfile(BaseModel):
@@ -67,8 +80,9 @@ class UserProfile(BaseModel):
 	:bio: биография (опциональное строковое поле)
 	"""
 
-	pass
-
+	username: UsernameType
+	role: RoleType
+	bio: BioType | None
 
 class NewDream(BaseModel):
 	"""
@@ -77,7 +91,7 @@ class NewDream(BaseModel):
 	:description: описание сна (строка минимальной длины 5)
 	"""
 
-	pass
+	description: DreamDescriptionType
 
 
 class Dream(BaseModel):
@@ -90,32 +104,28 @@ class Dream(BaseModel):
 	:favorited_by: список лайкнувших пользователей (список строк)
 	"""
 
+	id: UintType
+	description: DreamDescriptionType
+	author: UserProfile
+	created_at: DatetimeType
+	favourited_by: list[Username]
+
 	@field_validator('author', mode='before')
 	@classmethod
 	def convert_to_profile(cls, value):
-		"""
-		в этом классовом методе провалидируйте 
-		value схемой UserProfile
-		"""
-		return value
+		if isinstance(value, UserProfile):
+			return value
+		return UserProfile.model_validate(value)
 	
 
 	@field_serializer('created_at')
 	def convert_created_at(self, created_at: datetime) -> str:
-		"""
-		Сериализатор поля created_at, 
-		изменений не требует
-		"""
 		return created_at.replace(tzinfo=UTC).isoformat().replace('+00:00', 'Z')
 
 
 	@computed_field
 	def favorites_count(self) -> int:
-		'''
-		Из этого вычисляемого поля верните 
-		количество лайкнувших пользователей 
-		'''
-		return 0
+		return len(self.favourited_by)
 
 
 class MultipleDreams(BaseModel):
@@ -126,4 +136,5 @@ class MultipleDreams(BaseModel):
 	:dreams_count: количество снов подвыборки (целое число)
 	"""
 
-	pass
+	dreams: list[Dream]
+	dreams_count: UintType

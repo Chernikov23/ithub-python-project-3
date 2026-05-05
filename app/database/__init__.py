@@ -1,4 +1,5 @@
 import sqlite3
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
@@ -19,3 +20,7 @@ def get_sqlite3_connection() -> sqlite3.Connection:
 
 engine = create_engine(settings.DATABASE_URI.__str__(), pool_pre_ping=True)
 SessionLocal = sessionmaker(autoflush=False, bind=engine)
+
+from app.database.models import *
+
+Base.metadata.create_all(bind=engine)

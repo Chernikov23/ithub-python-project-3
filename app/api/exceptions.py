@@ -34,6 +34,14 @@ class NotFoundHTTPException(HTTPException):
 			detail=detail,
 		)
 
+	
+class AccessDeniedHTTPException(HTTPException):
+	def __init__(self, detail: str | None = 'Отказано в доступе'):
+		super().__init__(
+			status_code=status.HTTP_403_FORBIDDEN,
+			detail=detail,
+		)
+
 
 class NotAuthorizedHTTPException(HTTPException):
 	def __init__(self, detail: str | None = 'Недостаточно прав'):

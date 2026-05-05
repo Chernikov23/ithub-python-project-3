@@ -1,10 +1,9 @@
 from fastapi import APIRouter, Path, Query, status
 
 from app import schema
-from app.api.exceptions import ConflictHTTPException, NotFoundHTTPException, CredentialsHTTPException
 from app.api.dependencies import CurrentUser, SessionDatabase
-from app.database.exceptions import DuplicateDatabaseException
-from app.services import dreams_service
+from app.api.exceptions import *
+from app.services import dreams_service as dreamsvc
 
 dreams_router = APIRouter(
 	prefix='/dreams',
@@ -35,8 +34,11 @@ def get_dreams_list(
 	Примечание: здесь и далее при сериализации ответа будет красиво 
 	воспользоваться упомянутым в schema.py методом валидации ORM-слоя
 	"""
+
+	dreams = dreamsvc.get_list(session=session, limit=limit, offset=offset,
+							author=author, search=search, favorited=favorited)
 	
-	raise NotImplementedError
+	return schema.MultipleDreams(dreams=dreams[0], dreams_count=dreams[1])
 
 
 @dreams_router.post(
@@ -64,7 +66,9 @@ def create_dream(
 	Иначе - возвращает результат согласно схеме.	
 	"""
 
-	raise NotImplementedError
+	dream = dreamsvc.create(session=session, new_dream=new_dream_payload, author=current_user)
+
+	return dream
 
 
 @dreams_router.get(
@@ -79,15 +83,19 @@ def create_dream(
 )
 def get_dream(
 	session: SessionDatabase,
-	id: int = Path(..., title='Идентификатор сна для чтения'),
+	id: schema.UintType = Path(..., title='Идентификатор сна для чтения'),
 ) -> schema.Dream:
 	"""
 	Запрашивает dreams_service на получение сна по идентификатору.
 	Если сон не найден, выбрасывает NotFoundHTTPException c пояснением.
 	Иначе - возвращает результат согласно схеме
 	"""
+	dream = dreamsvc.get_by_id(session=session, id=id)
 
-	raise NotImplementedError
+	if not dream:
+		raise NotFoundHTTPException('Сон не найден.')
+	
+	return dream
 
 
 @dreams_router.delete(
@@ -117,8 +125,15 @@ def delete(
 	Иначе - запрашивает dreams_service на удаление сна.
 	"""
 
-	raise NotImplementedError
+	dream = dreamsvc.get_by_id(session=session, id=id)
 
+	if not dream:
+		raise NotFoundHTTPException('Сон не найден.')
+	
+	if dream.author_id != current_user.username and current_user.role != 'superuser':
+		raise AccessDeniedHTTPException()
+
+	dreamsvc.delete(session=session, dream_id=id)
 
 @dreams_router.post(
 	'/{id}/favorite',
@@ -147,7 +162,14 @@ def favorite(
 	c пояснением. Иначе - возвращает измененные данные согласно схеме.
 	"""
 
-	raise NotImplementedError
+	dream = dreamsvc.get_by_id(session=session, id=id)
+
+	if not dream:
+		raise NotFoundHTTPException('Сон не найден.')
+	
+	dreamsvc.favorite(session=session, dream=dream, user=current_user)
+
+	return dream
 
 
 @dreams_router.delete(
@@ -177,4 +199,11 @@ def unfavorite(
 	c пояснением. Иначе - возвращает измененные данные согласно схеме.
 	"""
 
-	raise NotImplementedError
+	dream = dreamsvc.get_by_id(session=session, id=id)
+
+	if not dream:
+		raise NotFoundHTTPException('Сон не найден.')
+	
+	dreamsvc.unfavorite(session=session, dream=dream, user=current_user)
+
+	return dream

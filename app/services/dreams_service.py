@@ -1,11 +1,12 @@
-import sqlite3
 from collections.abc import Sequence
 
-from sqlalchemy import Select, select
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy import text
 
 from app import schema
-from app.database import SessionLocal, exceptions, models
+from app.database import models
+from app.database.exceptions import DuplicateDatabaseException
 
 
 def get_by_id(session: Session, id: int) -> models.Dream | None:
@@ -19,7 +20,19 @@ def get_by_id(session: Session, id: int) -> models.Dream | None:
 	метод joined_load).
 	"""
 
-	raise NotImplementedError
+	'''
+	id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+	author_id: Mapped[str] = mapped_column(String, ForeignKey('users.username'), nullable=False)
+	description: Mapped[str] = mapped_column(Text, nullable=False)
+	created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now, nullable=False)
+	'''
+
+	dream = session.execute(text('SELECT id, author_id, description, created_at FROM dreams WHERE id = :id;'), {'id': id}).fetchone()
+
+	if not dream:
+		return None
+
+	return models.Dream(id=dream[0], author_id=dream[1], description=dream[2], created_at=dream[3])
 
 
 def get_list(
@@ -53,9 +66,33 @@ def get_list(
 	Подсчитывает количество снов после всех наложенных фильтров.
 	Наконец, возвращает это число вместе с пагинированным результатом. 
 	"""
-	
-	raise NotImplementedError
 
+	query = ('SELECT * FROM dreams'
+	+ (' JOIN dream_favorite ON dream_favorite.dream_id = dreams.id' if favorited else '')
+	+ ' WHERE TRUE'
+	+ (' AND author_id = :author' if author else '')
+	+ (' AND description LIKE :search' if search else '')
+	+ (' AND dream_favorite.user_id LIKE :favorited' if favorited else '')
+	+ ' ORDER BY created_at ASC'
+	+ (' LIMIT :limit' if limit else '')
+	+ (' OFFSET :offset' if offset else '')
+	+ ';')
+
+	query_count = ('SELECT COUNT(*) FROM dreams'
+	+ (' JOIN dream_favorite ON dream_favorite.dream_id = dreams.id' if favorited else '')
+	+ ' WHERE TRUE'
+	+ (' AND author_id = :author' if author else '')
+	+ (' AND description LIKE :search' if search else '')
+	+ (' AND dream_favorite.user_id = :favorited' if favorited else '')
+	+ ';')
+
+	params = {k: v for k, v in {'author': author, 'search': f'%{search}%' if search else None, 'favorited': favorited, 'limit': limit, 'offset': offset}.items() if v is not None}
+	params2 = {k: v for k, v in {'author': author, 'search': f'%{search}%' if search else None, 'favorited': f'%{favorited}%' if favorited else None }.items() if v is not None}
+
+	count = session.execute(text(query_count), params2).scalar()
+	dreams = tuple([models.Dream(**row) for row in session.execute(text(query), params).mappings().all()])
+
+	return (dreams, count)
 
 
 def create(*, session: Session, new_dream: schema.NewDream, author: schema.UserProfile) -> models.Dream:
@@ -68,21 +105,18 @@ def create(*, session: Session, new_dream: schema.NewDream, author: schema.UserP
 	В случае, если такой сон уже добавлен, выбрасывает DuplicateDatabaseException.
 	Иначе - возвращает ORM-объект с новым сном.
 	"""
-
-	raise NotImplementedError
-
+	try:
+		dream = session.execute(text('INSERT INTO dreams (author_id, description, created_at) VALUES (:username, :description, datetime(\'now\')) RETURNING id, author_id, description, created_at;'),
+					{'username': author.username, 'description': new_dream.description}).fetchone()
+		session.commit()
+		return models.Dream(id=dream[0], author_id=dream[1], description=dream[2], created_at=dream[3])
+	except IntegrityError:
+		raise DuplicateDatabaseException()
 
 
 def delete(*, session: Session, dream_id: int) -> None:
-	"""
-	:session: сессия sqlalchemy
-	:dream_id: идентификатор сна для удаления
-
-	Удаляет сон из базы данных.
-	"""
-	
-	raise NotImplementedError
-
+	session.execute(text('DELETE FROM dreams WHERE id = :id;'), {'id': dream_id})
+	session.commit()
 
 
 def favorite(
@@ -98,7 +132,12 @@ def favorite(
 	исключение DuplicateDatabaseException.
 	"""
 	
-	raise NotImplementedError
+	try:
+		session.execute(text('INSERT INTO dream_favorite (user_id, dream_id) VALUES (:user_id, :dream_id);'),
+					{'user_id': user.username, 'dream_id': dream.id})
+		session.commit()
+	except IntegrityError:
+		raise DuplicateDatabaseException()
 
 
 def unfavorite(
@@ -115,4 +154,7 @@ def unfavorite(
 
 	"""
 
-	raise NotImplementedError
+	session.execute(text('DELETE FROM dream_favorite WHERE user_id = :user_id AND dream_id = :dream_id;'),
+					{'user_id': user.username, 'dream_id': dream.id})
+	
+	session.commit()

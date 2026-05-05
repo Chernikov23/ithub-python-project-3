@@ -8,9 +8,9 @@ from jwt import InvalidTokenError
 from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
-from app import security, schema
+from app import schema, security
 from app.api.exceptions import CredentialsHTTPException, NotFoundHTTPException
-from app.database import SessionLocal, get_sqlite3_connection, models
+from app.database import SessionLocal, get_sqlite3_connection
 from app.services import users_service
 
 oauth2 = OAuth2PasswordBearer(tokenUrl='/auth/login')
@@ -33,7 +33,8 @@ def _get_db_sqlite() -> Generator[sqlite3.Cursor]:
 		yield cursor
 		connection.commit()
 	except (sqlite3.DatabaseError):
-		connection.rollback()	
+		connection.rollback()
+		raise
 	finally:
 		connection.close()
 

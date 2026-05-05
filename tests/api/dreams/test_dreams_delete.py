@@ -25,7 +25,7 @@ def test_superadmin_can_delete_dreams(client: TestClient, session: Session) -> N
 	# TODO
 	acting_as_john(session, client)
 
-	r = client.put(
+	r = client.delete(
 		'/dreams/test-title',
 		json={
 			'description': 'Test Title',

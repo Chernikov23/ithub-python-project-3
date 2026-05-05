@@ -3,7 +3,7 @@ from datetime import datetime
 from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Table, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.database import Base
+from app.database import Base, engine
 
 dream_favorite: Table = Table(
 	'dream_favorite',
@@ -46,6 +46,7 @@ class User(Base):
 	username: Mapped[str] = mapped_column(String, primary_key=True, index=True)
 	password: Mapped[str | None] = mapped_column(String, nullable=False)
 	bio: Mapped[str | None] = mapped_column(Text, nullable=True)
+	role: Mapped[str] = mapped_column(String, nullable=False, default='user')
 
 	dreams: Mapped[list[Dream]] = relationship('Dream', back_populates='author', lazy='joined')
 	favorite_dreams: Mapped[list[Dream]] = relationship(

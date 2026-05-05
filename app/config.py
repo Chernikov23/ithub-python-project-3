@@ -4,6 +4,7 @@ import typing
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+
 def get_database_uri():
 	if os.getenv('PYTHON_ENVIRONMENT') == 'testing':
 		return 'sqlite:///./app/database/testing.sqlite3'
