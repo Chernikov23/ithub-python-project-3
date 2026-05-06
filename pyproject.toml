@@ -35,4 +35,4 @@ format.indent-style = "tab"
 format.docstring-code-format = true
 format.docstring-code-line-length = 40
 lint.extend-select = ["UP", "RUF", "I"]
-lint.ignore = ["RUF001"]
+lint.ignore = ["RUF001", "RUF002", "RUF003"]

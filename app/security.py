@@ -2,6 +2,7 @@ from datetime import UTC, datetime, timedelta
 
 import jwt
 from pwdlib import PasswordHash
+from pwdlib.exceptions import UnknownHashError
 
 from app.config import settings
 
@@ -18,8 +19,10 @@ def decode_access_token(token: str) -> str:
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-	# TODO
-	return False
+	try:
+		return password_hasher.verify(plain_password, hashed_password)
+	except (UnknownHashError, ValueError, TypeError):
+		return False
 
 
 def get_password_hash(password: str) -> str:
