@@ -12,11 +12,12 @@ class Base(DeclarativeBase):
 
 def get_sqlite3_connection() -> sqlite3.Connection:
 	return sqlite3.connect(
-		settings.DATABASE_URI.lstrip('sqlite:///'), 
-		autocommit=False, 
-		check_same_thread=False
+		settings.DATABASE_URI.lstrip('sqlite:///'), autocommit=False, check_same_thread=False
 	)
 
 
 engine = create_engine(settings.DATABASE_URI.__str__(), pool_pre_ping=True)
 SessionLocal = sessionmaker(autoflush=False, bind=engine)
+
+from app.database.models import *
+Base.metadata.create_all(bind=engine)

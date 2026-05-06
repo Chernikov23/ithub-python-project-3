@@ -6,7 +6,6 @@ from app.api.exceptions import *
 from app.database.exceptions import *
 from app.services import dreams_service as dreamsvc
 
-
 dreams_router = APIRouter(
 	prefix='/dreams',
 	tags=['Сны'],
@@ -19,8 +18,8 @@ dreams_router = APIRouter(
 	description='Чтение снов с возможностью поиска, фильтрации, пагинации, с сортировкой по времени добавления',
 	response_model=schema.MultipleDreams,
 	responses={
-		status.HTTP_422_UNPROCESSABLE_CONTENT: { "description": "Параметры запроса не валидные"}	
-	}
+		status.HTTP_422_UNPROCESSABLE_CONTENT: {'description': 'Параметры запроса не валидные'}
+	},
 )
 def get_dreams_list(
 	session: SessionDatabase,
@@ -32,13 +31,19 @@ def get_dreams_list(
 ) -> schema.MultipleDreams:
 	"""
 	Запрашивает dreams_service, возвращает результат согласно схеме.
-	
-	Примечание: здесь и далее при сериализации ответа будет красиво 
+
+	Примечание: здесь и далее при сериализации ответа будет красиво
 	воспользоваться упомянутым в schema.py методом валидации ORM-слоя
 	"""
 
-	return dreamsvc.get_list(session=session, limit=limit, offset=offset,
-							author=author, search=search, favorited=favorited)
+	return dreamsvc.get_list(
+		session=session,
+		limit=limit,
+		offset=offset,
+		author=author,
+		search=search,
+		favorited=favorited,
+	)
 
 
 @dreams_router.post(
@@ -48,10 +53,10 @@ def get_dreams_list(
 	response_model=schema.Dream,
 	status_code=201,
 	responses={
-		status.HTTP_401_UNAUTHORIZED: { "description": "Ошибка токена или пользовательских данных" },
-		status.HTTP_409_CONFLICT: { "description": "Пользователь уже добавлял этот сон" },
-		status.HTTP_422_UNPROCESSABLE_CONTENT: { "description": "Данные не валидны" }
-	}
+		status.HTTP_401_UNAUTHORIZED: {'description': 'Ошибка токена или пользовательских данных'},
+		status.HTTP_409_CONFLICT: {'description': 'Пользователь уже добавлял этот сон'},
+		status.HTTP_422_UNPROCESSABLE_CONTENT: {'description': 'Данные не валидны'},
+	},
 )
 def create_dream(
 	current_user: CurrentUser,
@@ -61,9 +66,9 @@ def create_dream(
 	"""
 	Получает текущего пользователя через инъекцию зависимостей,
 	в случае ошибки выбрасывает CredentialsHTTPException.
-	Иначе - запрашивает dreams_service на создание сна. В случае 
-	ошибки дублирования выбрасывает ConflictHTTPException с пояснением. 
-	Иначе - возвращает результат согласно схеме.	
+	Иначе - запрашивает dreams_service на создание сна. В случае
+	ошибки дублирования выбрасывает ConflictHTTPException с пояснением.
+	Иначе - возвращает результат согласно схеме.
 	"""
 
 	try:
@@ -71,15 +76,16 @@ def create_dream(
 	except DuplicateDatabaseException:
 		raise ConflictHTTPException('Сон с таким описанием уже существует.')
 
+
 @dreams_router.get(
 	'/{id}',
 	summary='Чтение сна',
 	response_model=schema.Dream,
 	responses={
-		status.HTTP_401_UNAUTHORIZED: { "description": "Ошибка токена или пользовательских данных" },
-		status.HTTP_404_NOT_FOUND: { "description": "Сон не найден" },
-		status.HTTP_422_UNPROCESSABLE_CONTENT: { "description": "Идентификатор не валиден" }
-	}
+		status.HTTP_401_UNAUTHORIZED: {'description': 'Ошибка токена или пользовательских данных'},
+		status.HTTP_404_NOT_FOUND: {'description': 'Сон не найден'},
+		status.HTTP_422_UNPROCESSABLE_CONTENT: {'description': 'Идентификатор не валиден'},
+	},
 )
 def get_dream(
 	session: SessionDatabase,
@@ -94,7 +100,7 @@ def get_dream(
 
 	if not dream:
 		raise NotFoundHTTPException('Сон не найден.')
-	
+
 	return dream
 
 
@@ -104,11 +110,11 @@ def get_dream(
 	description='Удаление сна (требуется авторизация для удаления собственных снов и админправа для удаления чужих снов',
 	status_code=204,
 	responses={
-		status.HTTP_401_UNAUTHORIZED: { "description": "Ошибка токена или пользовательских данных" },
-		status.HTTP_404_NOT_FOUND: { "description": "Сон не найден" },
-		status.HTTP_403_FORBIDDEN: { "description": "Пользователь не является автором сна" },
-		status.HTTP_422_UNPROCESSABLE_CONTENT: { "description": "Идентификатор не валиден" }
-	}
+		status.HTTP_401_UNAUTHORIZED: {'description': 'Ошибка токена или пользовательских данных'},
+		status.HTTP_404_NOT_FOUND: {'description': 'Сон не найден'},
+		status.HTTP_403_FORBIDDEN: {'description': 'Пользователь не является автором сна'},
+		status.HTTP_422_UNPROCESSABLE_CONTENT: {'description': 'Идентификатор не валиден'},
+	},
 )
 def delete(
 	current_user: CurrentUser,
@@ -129,11 +135,12 @@ def delete(
 
 	if not dream:
 		raise NotFoundHTTPException('Сон не найден.')
-	
+
 	if dream.author.username != current_user.username and current_user.role != 'superuser':
 		raise AccessDeniedHTTPException()
 
 	dreamsvc.delete(session=session, dream_id=id)
+
 
 @dreams_router.post(
 	'/{id}/favorite',
@@ -141,11 +148,11 @@ def delete(
 	description='Добавить сон в любимые (требуется авторизация)',
 	response_model=schema.Dream,
 	responses={
-		status.HTTP_401_UNAUTHORIZED: { "description": "Ошибка токена или пользовательских данных" },
-		status.HTTP_404_NOT_FOUND: { "description": "Сон не найден" },
-		status.HTTP_409_CONFLICT: { "description": "Сон уже добавлен пользователем в любимые" },
-		status.HTTP_422_UNPROCESSABLE_CONTENT: { "description": "Идентификатор не валиден" }
-	}
+		status.HTTP_401_UNAUTHORIZED: {'description': 'Ошибка токена или пользовательских данных'},
+		status.HTTP_404_NOT_FOUND: {'description': 'Сон не найден'},
+		status.HTTP_409_CONFLICT: {'description': 'Сон уже добавлен пользователем в любимые'},
+		status.HTTP_422_UNPROCESSABLE_CONTENT: {'description': 'Идентификатор не валиден'},
+	},
 )
 def favorite(
 	current_user: CurrentUser,
@@ -157,7 +164,7 @@ def favorite(
 	в случае ошибки выбрасывает CredentialsHTTPException.
 	Иначе - запрашивает dreams_service на получение сна по идентификатору.
 	Если сон не найден, выбрасывает NotFoundHTTPException c пояснением.
-	Иначе - запрашивает dreams_service на добавление в любимые. Если сон 
+	Иначе - запрашивает dreams_service на добавление в любимые. Если сон
 	уже был добавлен пользователем в любимые, выбрасывает ConflictHTTPException
 	c пояснением. Иначе - возвращает измененные данные согласно схеме.
 	"""
@@ -166,7 +173,7 @@ def favorite(
 
 	if not dream:
 		raise NotFoundHTTPException('Сон не найден.')
-	
+
 	dreamsvc.favorite(session=session, dream=dream, user=current_user)
 
 	return dreamsvc.get_by_id(session=session, id=id)
@@ -178,11 +185,11 @@ def favorite(
 	description='Снять лайк со сна (требуется авторизация)',
 	response_model=schema.Dream,
 	responses={
-		status.HTTP_401_UNAUTHORIZED: { "description": "Ошибка токена или пользовательских данных" },
-		status.HTTP_404_NOT_FOUND: { "description": "Сон не найден" },
-		status.HTTP_409_CONFLICT: { "description": "Сон уже добавлен пользователем в любимые" },
-		status.HTTP_422_UNPROCESSABLE_CONTENT: { "description": "Идентификатор не валиден" }
-	}
+		status.HTTP_401_UNAUTHORIZED: {'description': 'Ошибка токена или пользовательских данных'},
+		status.HTTP_404_NOT_FOUND: {'description': 'Сон не найден'},
+		status.HTTP_409_CONFLICT: {'description': 'Сон уже добавлен пользователем в любимые'},
+		status.HTTP_422_UNPROCESSABLE_CONTENT: {'description': 'Идентификатор не валиден'},
+	},
 )
 def unfavorite(
 	current_user: CurrentUser,
@@ -194,7 +201,7 @@ def unfavorite(
 	в случае ошибки выбрасывает CredentialsHTTPException.
 	Иначе - запрашивает dreams_service на получение сна по идентификатору.
 	Если сон не найден, выбрасывает NotFoundHTTPException c пояснением.
-	Иначе - запрашивает dreams_service на удаление из любимых любимые. Если сон 
+	Иначе - запрашивает dreams_service на удаление из любимых любимые. Если сон
 	не был добавлен пользователем в любимые, выбрасывает ConflictHTTPException
 	c пояснением. Иначе - возвращает измененные данные согласно схеме.
 	"""
@@ -203,7 +210,7 @@ def unfavorite(
 
 	if not dream:
 		raise NotFoundHTTPException('Сон не найден.')
-	
+
 	dreamsvc.unfavorite(session=session, dream=dream, user=current_user)
 
 	return dreamsvc.get_by_id(session=session, id=id)

@@ -1,10 +1,9 @@
 from datetime import datetime
 
 from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Table, Text, UniqueConstraint
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base, engine
-
 
 dream_favorite: Table = Table(
 	'dream_favorite',
@@ -27,9 +26,7 @@ class Dream(Base):
 	description: Mapped[str] = mapped_column(Text, nullable=False)
 	created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now, nullable=False)
 
-	__table_args__ = (
-        UniqueConstraint("author", "description", name="uq_author_description"),
-    )
+	__table_args__ = (UniqueConstraint('author', 'description', name='uq_author_description'),)
 
 
 class User(Base):
@@ -39,6 +36,3 @@ class User(Base):
 	password: Mapped[str] = mapped_column(String, nullable=False)
 	bio: Mapped[str | None] = mapped_column(Text, nullable=True)
 	role: Mapped[str] = mapped_column(String, nullable=False, default='user')
-
-
-Base.metadata.create_all(bind=engine)

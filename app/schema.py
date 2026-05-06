@@ -1,38 +1,74 @@
-from datetime import UTC, datetime
-from typing import Literal, Annotated, Optional
+from datetime import datetime
+from typing import Annotated, Literal
 
 from pydantic import BaseModel as PBaseModel
-from pydantic import ConfigDict, computed_field, field_serializer, field_validator, StringConstraints, AfterValidator, Field
+from pydantic import (
+	ConfigDict,
+	Field,
+	StringConstraints,
+	computed_field,
+	field_serializer,
+	field_validator,
+)
 
-
-UsernameType = Annotated[str, StringConstraints(strip_whitespace=True, min_length=3, max_length=32, to_lower=True, pattern=r"^[a-zA-Z0-9._-]+$")]
-PasswordType = Annotated[str, StringConstraints(min_length=8, max_length=32, pattern=r"^[a-zA-Z0-9!@#$%&?.]+$")]
-BioType = Annotated[Optional[str], StringConstraints(min_length=0, max_length=2048, strip_whitespace=True, pattern=r"^[a-zA-Zа-яА-Я0-9'\".,!@#$%&*()-_=+/~— ]+$")]
-DreamDescriptionType = Annotated[str, StringConstraints(min_length=5, max_length=16384, strip_whitespace=True, pattern=r"^[a-zA-Zа-яА-Я0-9'\".,!@#$%&*()-_=+/~— ]+$")]
-DatetimeType = Annotated[str, StringConstraints(pattern=r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}Z$")]
+UsernameType = Annotated[
+	str,
+	StringConstraints(
+		strip_whitespace=True,
+		min_length=3,
+		max_length=32,
+		to_lower=True,
+		pattern=r'^[a-zA-Z0-9._-]+$',
+	),
+]
+PasswordType = Annotated[
+	str, StringConstraints(min_length=8, max_length=32, pattern=r'^[a-zA-Z0-9!@#$%&?.]+$')
+]
+BioType = Annotated[
+	str | None,
+	StringConstraints(
+		min_length=0,
+		max_length=2048,
+		strip_whitespace=True,
+		pattern=r"^[a-zA-Zа-яА-Я0-9'\".,!@#$%&*()-_=+/~— ]+$",
+	),
+]
+DreamDescriptionType = Annotated[
+	str,
+	StringConstraints(
+		min_length=5,
+		max_length=16384,
+		strip_whitespace=True,
+		pattern=r"^[a-zA-Zа-яА-Я0-9'\".,!@#$%&*()-_=+/~— ]+$",
+	),
+]
+DatetimeType = Annotated[
+	str, StringConstraints(pattern=r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}Z$')
+]
 IndexType = Annotated[int, Field(ge=0)]
 CountType = IndexType
-JwtType = Annotated[str, StringConstraints(pattern=r"^[A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+\.?[A-Za-z0-9-_.+/=]*$")]
+JwtType = Annotated[
+	str, StringConstraints(pattern=r'^[A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+\.?[A-Za-z0-9-_.+/=]*$')
+]
 RoleType = Literal['user', 'superuser']
+
 
 class BaseModel(PBaseModel):
 	"""
-	Расширенная базовая модель, позволяет 
-	красивее обрабатывать данные ORM-слоя 
-	(правда отдельным методом, который вам 
+	Расширенная базовая модель, позволяет
+	красивее обрабатывать данные ORM-слоя
+	(правда отдельным методом, который вам
 	придётся разузнать)
 	"""
-	
-	model_config = ConfigDict(
-		populate_by_name=True, from_attributes=True
-	)
+
+	model_config = ConfigDict(populate_by_name=True, from_attributes=True)
 
 
 class UserToken(BaseModel):
 	"""
 	Схема Oauth2-токена
 	"""
-	
+
 	access_token: JwtType
 	token_type: Literal['bearer'] = 'bearer'
 
@@ -53,7 +89,7 @@ class UserCreate(BaseModel):
 
 	:username: имя пользователя (строка ненулевой длины)
 	:password: хешированный пароль
-	:bio: биография (опциональное строковое поле) 
+	:bio: биография (опциональное строковое поле)
 	"""
 
 	username: UsernameType
@@ -86,7 +122,7 @@ class UserProfile(BaseModel):
 class UserAccount(BaseModel):
 	"""
 	Приватная схема пользователя
-	
+
 	:username: имя пользователя
 	:bio: биография (опциональное строковое поле)
 	:role: роль пользователя
@@ -129,12 +165,10 @@ class Dream(BaseModel):
 		if isinstance(value, UserProfile):
 			return value
 		return UserProfile.model_validate(value)
-	
 
 	@field_serializer('created_at')
 	def convert_created_at(self, created_at: datetime) -> str:
 		return datetime.fromisoformat(created_at).isoformat() + 'Z'
-
 
 	@computed_field
 	def favorites_count(self) -> int:

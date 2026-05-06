@@ -10,6 +10,7 @@ def get_database_uri():
 		return 'sqlite:///./app/database/testing.sqlite3'
 	return 'sqlite:///./app/database/local.sqlite3'
 
+
 class Settings(BaseSettings):
 	DEBUG: bool = os.getenv('PYTHON_ENVIRONMENT') != 'testing'
 

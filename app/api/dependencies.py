@@ -1,4 +1,3 @@
-import sqlite3
 from collections.abc import Generator
 from typing import Annotated
 
@@ -10,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from app import schema, security
 from app.api.exceptions import CredentialsHTTPException, NotFoundHTTPException
-from app.database import SessionLocal, get_sqlite3_connection
+from app.database import SessionLocal
 from app.services import users_service
 
 oauth2 = OAuth2PasswordBearer(tokenUrl='/auth/login')

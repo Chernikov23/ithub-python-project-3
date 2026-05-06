@@ -1,10 +1,10 @@
+
 from fastapi import APIRouter, Body, Path, status
 
 from app import schema
 from app.api.dependencies import CurrentUser, SessionDatabase
-from app.services import users_service as usersvc
-from sqlite3 import Cursor
 from app.api.exceptions import *
+from app.services import users_service as usersvc
 
 users_router = APIRouter(
 	prefix='/users',
@@ -15,20 +15,20 @@ users_router = APIRouter(
 @users_router.get(
 	'/me',
 	summary='Информация о текущем залогиненном пользователе',
-	response_model=schema.UserProfile,
+	response_model=schema.UserAccount,
 	responses={
-		status.HTTP_401_UNAUTHORIZED: { "description": "Ошибка токена или пользовательских данных" },
-	}
+		status.HTTP_401_UNAUTHORIZED: {'description': 'Ошибка токена или пользовательских данных'},
+	},
 )
 def get_current(
 	current_user: CurrentUser,
-) -> schema.UserProfile:
+) -> schema.UserAccount:
 	"""
-	Получает текущего пользователя через инъекцию зависимостей, в случае 
+	Получает текущего пользователя через инъекцию зависимостей, в случае
 	ошибки выбрасывает CredentialsHTTPException. Иначе - отвечает согласно схеме.
 	"""
 
-	return schema.UserProfile(username=current_user.username, bio=current_user.bio)
+	return current_user
 
 
 @users_router.get(
@@ -37,9 +37,9 @@ def get_current(
 	description='Публичная часть информации о пользователе по юзернейму',
 	response_model=schema.UserProfile,
 	responses={
-		status.HTTP_404_NOT_FOUND: { "description": "Пользователь не найден" },
-		status.HTTP_422_UNPROCESSABLE_CONTENT: { "description": "Юзернейм не валиден" }
-	}
+		status.HTTP_404_NOT_FOUND: {'description': 'Пользователь не найден'},
+		status.HTTP_422_UNPROCESSABLE_CONTENT: {'description': 'Юзернейм не валиден'},
+	},
 )
 def get_by_username(
 	session: SessionDatabase,
@@ -58,27 +58,29 @@ def get_by_username(
 
 	return schema.UserProfile(username=user.username, bio=user.bio)
 
-@users_router.get(
+
+@users_router.delete(
 	'/{username}',
 	summary='Удалить пользователя по юзернейму',
 	description='Суперпользователь может удалить пользователя по юзернейму',
-	response_model=schema.UserProfile,
-	responses={
-		status.HTTP_422_UNPROCESSABLE_CONTENT: { "description": "Юзернейм не валиден" }
-	}
+	responses={status.HTTP_422_UNPROCESSABLE_CONTENT: {'description': 'Юзернейм не валиден'},
+			status.HTTP_403_FORBIDDEN: {'description': 'Отказано в доступе'}},
 )
 def delete_by_username(
 	session: SessionDatabase,
 	current_user: CurrentUser,
 	username: str = Path(..., description='Имя пользователя'),
-) -> schema.UserProfile:
+) -> None:
 	"""
 	Запрашивает users_service на получение пользователя по юзернейму.
 	Если пользователь не найден, выбрасывает NotFoundHTTPException c
 	пояснением. Иначе - отвечает согласно схеме.
 	"""
 
-	user = usersvc.delete(session=session, username=username)
+	if current_user.username != username and current_user.role != 'superuser':
+		return AccessDeniedHTTPException()
+
+	usersvc.delete(session=session, username=username)
 
 
 @users_router.put(
@@ -87,10 +89,10 @@ def delete_by_username(
 	response_model=schema.UserProfile,
 	status_code=200,
 	responses={
-		status.HTTP_401_UNAUTHORIZED: { "description": "Ошибка токена или пользовательских данных" },
-		status.HTTP_404_NOT_FOUND: { "description": "Пользователь не найден" },
-		status.HTTP_422_UNPROCESSABLE_CONTENT: { "description": "Данные не валидны" }
-	}
+		status.HTTP_401_UNAUTHORIZED: {'description': 'Ошибка токена или пользовательских данных'},
+		status.HTTP_404_NOT_FOUND: {'description': 'Пользователь не найден'},
+		status.HTTP_422_UNPROCESSABLE_CONTENT: {'description': 'Данные не валидны'},
+	},
 )
 def update_current(
 	current_user: CurrentUser,
@@ -98,16 +100,18 @@ def update_current(
 	update_user_payload: schema.UserUpdate = Body(...),
 ) -> schema.UserProfile:
 	"""
-	Получает текущего пользователя через инъекцию зависимостей, в случае 
+	Получает текущего пользователя через инъекцию зависимостей, в случае
 	ошибки выбрасывает CredentialsHTTPException. Иначе - запрашивает пользователя
-	через users_service. Если пользователь не найден, выбрасывает NotFoundHTTPException 
+	через users_service. Если пользователь не найден, выбрасывает NotFoundHTTPException
 	с пояснением. Иначе - запрашивает users_service на обновление данных. Возвращает
 	ответ согласно схеме.
 	"""
 
-	user = usersvc.update(session=session, username=current_user.username, update_data=update_user_payload)
+	user = usersvc.update(
+		session=session, username=current_user.username, update_data=update_user_payload
+	)
 
 	if not user:
 		raise NotFoundHTTPException()
-	
+
 	return user
