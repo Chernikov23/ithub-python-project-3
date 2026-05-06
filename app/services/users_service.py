@@ -2,12 +2,18 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text
 
 from app.database import models
+from sqlalchemy.orm import Session
+from sqlalchemy import text
+
+from app.database import models
 
 from app import schema
+from app.services import dreams_service as dreamsvc
 
 
-def get_by_username(*, session: Session, username: str) -> schema.UserProfile | None:
+def get_by_username(*, session: Session, username: str) -> schema.UserAccount | None:
 	"""
+	:session: сессия подключения к базе данных
 	:session: сессия подключения к базе данных
 	:username: уникальный юзернейм пользователя
 	
@@ -17,38 +23,16 @@ def get_by_username(*, session: Session, username: str) -> schema.UserProfile | 
 	"""	
 	
 	user = session.execute(
-		text('SELECT username, role, bio FROM users WHERE username = :username;'),
+		text('SELECT username, bio, role FROM users WHERE username = :username;'),
 		{'username': username}
 	).fetchone()
-
-	if not user:
-		return None
 	
-	return schema.UserProfile(username=user[0], role=user[1], bio=user[2])
+	return schema.UserAccount(username=user[0], bio=user[1], role=user[2]) if user else None
 
-def get_by_username_orm(*, session: Session, username: str) -> models.User | None:
+
+def update(*, session: Session, username: schema.UsernameType, update_data: schema.UserUpdate) -> schema.UserProfile | None:
 	"""
 	:session: сессия подключения к базе данных
-	:username: уникальный юзернейм пользователя
-	
-	Запрашивает пользователя из базы данных. 
-	Если пользователь не найден, возвращает None.
-	Иначе - возвращает запись согласно схеме.
-	"""	
-	
-	user = session.execute(
-		text('SELECT username, role, bio FROM users WHERE username = :username;'),
-		{'username': username}
-	).fetchone()
-
-	if not user:
-		return None
-	
-	return models.User(username=user[0], role=user[1], bio=user[2], password='')
-
-
-def update(*, session: Session, username: str, update_data: schema.UserUpdate) -> schema.UserProfile | None:
-	"""
 	:session: сессия подключения к базе данных
 	:username: уникальный юзернейм пользователя
 	:update_data: данные для обновления
@@ -59,14 +43,14 @@ def update(*, session: Session, username: str, update_data: schema.UserUpdate) -
 	"""	
 
 	
-	result = session.execute(
+	updated = session.execute(
 		text('UPDATE users SET bio = :bio WHERE username = :username;'),
 		{'bio': update_data.bio, 'username': username}
-	)
+	).rowcount > 0
 	
-	updated = result.rowcount > 0
-	
-	if updated:
-		session.commit()
-	
-	return schema.UserProfile(username=username, bio=update_data.bio, role='user') if updated else None
+	return schema.UserProfile(username=username, bio=update_data.bio) if updated else None
+
+
+def delete(*, session: Session, username: schema.UsernameType) -> None:
+	dreamsvc.delete_by_username(session=session, username=username)
+	session.execute('DELETE FROM users WHERE username = :username;')

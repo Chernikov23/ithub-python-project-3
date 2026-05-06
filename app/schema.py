@@ -9,17 +9,19 @@ UsernameType = Annotated[str, StringConstraints(strip_whitespace=True, min_lengt
 PasswordType = Annotated[str, StringConstraints(min_length=8, max_length=32, pattern=r"^[a-zA-Z0-9!@#$%&?.]+$")]
 BioType = Annotated[Optional[str], StringConstraints(min_length=0, max_length=2048, strip_whitespace=True, pattern=r"^[a-zA-Zа-яА-Я0-9'\".,!@#$%&*()-_=+/~— ]+$")]
 DreamDescriptionType = Annotated[str, StringConstraints(min_length=5, max_length=16384, strip_whitespace=True, pattern=r"^[a-zA-Zа-яА-Я0-9'\".,!@#$%&*()-_=+/~— ]+$")]
-DatetimeType = Annotated[str, StringConstraints(pattern=r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$")]
-UintType = Annotated[int, Field(ge=0)]
+DatetimeType = Annotated[str, StringConstraints(pattern=r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}Z$")]
+IndexType = Annotated[int, Field(ge=0)]
+CountType = IndexType
+JwtType = Annotated[str, StringConstraints(pattern=r"^[A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+\.?[A-Za-z0-9-_.+/=]*$")]
 RoleType = Literal['user', 'superuser']
 
 class BaseModel(PBaseModel):
-	'''
+	"""
 	Расширенная базовая модель, позволяет 
 	красивее обрабатывать данные ORM-слоя 
 	(правда отдельным методом, который вам 
 	придётся разузнать)
-	'''
+	"""
 	
 	model_config = ConfigDict(
 		populate_by_name=True, from_attributes=True
@@ -27,11 +29,11 @@ class BaseModel(PBaseModel):
 
 
 class UserToken(BaseModel):
-	'''
+	"""
 	Схема Oauth2-токена
-	'''
+	"""
 	
-	access_token: str
+	access_token: JwtType
 	token_type: Literal['bearer'] = 'bearer'
 
 
@@ -56,10 +58,7 @@ class UserCreate(BaseModel):
 
 	username: UsernameType
 	password: PasswordType
-	role: RoleType = 'user'
 	bio: BioType | None = None
-
-	pass
 
 
 class UserUpdate(BaseModel):
@@ -69,7 +68,7 @@ class UserUpdate(BaseModel):
 	:bio: биография (опциональное строковое поле)
 	"""
 
-	bio: BioType
+	bio: BioType | None
 
 
 class UserProfile(BaseModel):
@@ -81,8 +80,22 @@ class UserProfile(BaseModel):
 	"""
 
 	username: UsernameType
-	role: RoleType
 	bio: BioType | None
+
+
+class UserAccount(BaseModel):
+	"""
+	Приватная схема пользователя
+	
+	:username: имя пользователя
+	:bio: биография (опциональное строковое поле)
+	:role: роль пользователя
+	"""
+
+	username: UsernameType
+	bio: BioType | None
+	role: RoleType
+
 
 class NewDream(BaseModel):
 	"""
@@ -104,11 +117,11 @@ class Dream(BaseModel):
 	:favorited_by: список лайкнувших пользователей (список строк)
 	"""
 
-	id: UintType
+	id: IndexType
 	description: DreamDescriptionType
 	author: UserProfile
 	created_at: DatetimeType
-	favorited_by: list[Username]
+	favorited_by: list[UsernameType]
 
 	@field_validator('author', mode='before')
 	@classmethod
@@ -137,4 +150,4 @@ class MultipleDreams(BaseModel):
 	"""
 
 	dreams: list[Dream]
-	dreams_count: UintType
+	dreams_count: CountType

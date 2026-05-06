@@ -6,6 +6,7 @@ from app.api.exceptions import *
 from app.database.exceptions import *
 from app.services import dreams_service as dreamsvc
 
+
 dreams_router = APIRouter(
 	prefix='/dreams',
 	tags=['Сны'],
@@ -36,10 +37,8 @@ def get_dreams_list(
 	воспользоваться упомянутым в schema.py методом валидации ORM-слоя
 	"""
 
-	dreams = dreamsvc.get_list(session=session, limit=limit, offset=offset,
+	return dreamsvc.get_list(session=session, limit=limit, offset=offset,
 							author=author, search=search, favorited=favorited)
-	
-	return schema.MultipleDreams(dreams=dreams[0], dreams_count=dreams[1])
 
 
 @dreams_router.post(
@@ -84,7 +83,7 @@ def create_dream(
 )
 def get_dream(
 	session: SessionDatabase,
-	id: schema.UintType = Path(..., title='Идентификатор сна для чтения'),
+	id: schema.IndexType = Path(..., title='Идентификатор сна для чтения'),
 ) -> schema.Dream:
 	"""
 	Запрашивает dreams_service на получение сна по идентификатору.

@@ -18,4 +18,4 @@ def test_can_get_user(client: TestClient, session: Session) -> None:
 
 	assert r.status_code == status.HTTP_200_OK
 
-	assert r.json() == {'username': 'john.doe', 'bio': None, 'role': 'user'}
+	assert r.json() == {'username': 'john.doe', 'bio': None}

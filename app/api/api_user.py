@@ -28,7 +28,7 @@ def get_current(
 	ошибки выбрасывает CredentialsHTTPException. Иначе - отвечает согласно схеме.
 	"""
 
-	return current_user
+	return schema.UserProfile(username=current_user.username, bio=current_user.bio)
 
 
 @users_router.get(
@@ -56,7 +56,29 @@ def get_by_username(
 	if not user:
 		raise NotFoundHTTPException('Имя пользователя не найдено.')
 
-	return user
+	return schema.UserProfile(username=user.username, bio=user.bio)
+
+@users_router.get(
+	'/{username}',
+	summary='Удалить пользователя по юзернейму',
+	description='Суперпользователь может удалить пользователя по юзернейму',
+	response_model=schema.UserProfile,
+	responses={
+		status.HTTP_422_UNPROCESSABLE_CONTENT: { "description": "Юзернейм не валиден" }
+	}
+)
+def delete_by_username(
+	session: SessionDatabase,
+	current_user: CurrentUser,
+	username: str = Path(..., description='Имя пользователя'),
+) -> schema.UserProfile:
+	"""
+	Запрашивает users_service на получение пользователя по юзернейму.
+	Если пользователь не найден, выбрасывает NotFoundHTTPException c
+	пояснением. Иначе - отвечает согласно схеме.
+	"""
+
+	user = usersvc.delete(session=session, username=username)
 
 
 @users_router.put(

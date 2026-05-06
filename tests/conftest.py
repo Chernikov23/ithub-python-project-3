@@ -7,7 +7,7 @@ from collections.abc import Generator
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import delete, create_engine, select
+from sqlalchemy import delete, create_engine, select, text
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.exc import IntegrityError
 
@@ -99,7 +99,7 @@ def generate_dream(author: models.User, id: int | None = None) -> models.Dream:
 	return models.Dream(
 		description=f'Test Description {id}',
 		id=id,
-		author=author,
+		author=author.username,
 	)
 
 
@@ -116,7 +116,7 @@ def generate_dreams(session: Session) -> models.User:
 		dream = models.Dream(
 			description=f'Test Description {i}',
 			id=i,
-			author=john,
+			author=john.username,
 		)
 		session.add(dream)
 		session.commit()
@@ -125,16 +125,19 @@ def generate_dreams(session: Session) -> models.User:
 		dream = models.Dream(
 			description=f'Test Description {i}',
 			id=i,
-			author=jane,
+			author=jane.username,
 		)
 
 		if dream.id in john_favorited_dreams:
-			dream.favorited_by.append(john)
+			session.execute(
+				text('INSERT INTO dream_favorite (username, dream_id) VALUES (:username, :dream_id)'),
+				{'username': john.username, 'dream_id': dream.id}
+			)
 
 		session.add(dream)
 		session.commit()
 
-	session.refresh(john)
+	john = session.query(models.User).filter_by(username='john.doe').first()
 	
 	# session.close()
 	return john

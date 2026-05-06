@@ -22,24 +22,14 @@ def _get_db_sa() -> Generator[Session]:
 	db = SessionLocal()
 	try:
 		yield db
+		db.commit()
+	except Exception:
+		db.rollback()
+		raise
 	finally:
 		db.close()
 
 
-def _get_db_sqlite() -> Generator[sqlite3.Cursor]:
-	connection = get_sqlite3_connection()
-	cursor = connection.cursor()
-	try:
-		yield cursor
-		connection.commit()
-	except (sqlite3.DatabaseError):
-		connection.rollback()
-		raise
-	finally:
-		connection.close()
-
-
-CursorDatabase = Annotated[sqlite3.Cursor, Depends(_get_db_sqlite)]
 SessionDatabase = Annotated[Session, Depends(_get_db_sa)]
 
 
@@ -57,4 +47,4 @@ def _get_current_user(
 		raise CredentialsHTTPException
 
 
-CurrentUser = Annotated[schema.UserProfile, Depends(_get_current_user)]
+CurrentUser = Annotated[schema.UserAccount, Depends(_get_current_user)]

@@ -1,5 +1,5 @@
 from fastapi.testclient import TestClient
-from sqlalchemy import select
+from sqlalchemy import select, text
 from sqlalchemy.orm import Session
 from starlette import status
 
@@ -56,8 +56,13 @@ def test_can_unfavorite_dream(client: TestClient, session: Session) -> None:
 	assert john is not None
 
 	jane_dream = generate_dream(jane, id=1)
-	jane_dream.favorited_by.append(john)
 	session.add(jane_dream)
+	session.commit()
+
+	session.execute(
+		text('INSERT INTO dream_favorite (username, dream_id) VALUES (:username, :dream_id)'),
+		{'username': 'john.doe', 'dream_id': jane_dream.id}
+	)
 	session.commit()
 
 	r = client.delete('/dreams/1/favorite')
