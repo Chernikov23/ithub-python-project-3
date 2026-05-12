@@ -43,7 +43,7 @@ def get_current(
 )
 def get_by_username(
 	session: SessionDatabase,
-	username: str = Path(..., description='Имя пользователя'),
+	username: schema.UsernameType = Path(..., description='Имя пользователя'),
 ) -> schema.UserProfile:
 	"""
 	Запрашивает users_service на получение пользователя по юзернейму.
@@ -69,7 +69,7 @@ def get_by_username(
 def delete_by_username(
 	session: SessionDatabase,
 	current_user: CurrentUser,
-	username: str = Path(..., description='Имя пользователя'),
+	username: schema.UsernameType = Path(..., description='Имя пользователя'),
 ) -> None:
 	"""
 	Запрашивает users_service на получение пользователя по юзернейму.

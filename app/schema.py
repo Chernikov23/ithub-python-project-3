@@ -9,6 +9,8 @@ from pydantic import (
 	computed_field,
 	field_serializer,
 	field_validator,
+	TypeAdapter,
+	ValidationError
 )
 
 UsernameType = Annotated[

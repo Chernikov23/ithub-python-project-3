@@ -56,6 +56,12 @@ def login(
 	выбрасывает LoginHTTPException с пояснением. Иначе - возвращает токен согласно схеме.
 	"""
 
+	try:
+		schema.TypeAdapter(schema.UsernameType).validate_python(user_credentials.username)
+		schema.TypeAdapter(schema.PasswordType).validate_python(user_credentials.password)
+	except schema.ValidationError:
+		raise LoginHTTPException()
+
 	user = get_by_username(session=session, username=user_credentials.username)
 
 	if not user:

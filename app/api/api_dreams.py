@@ -23,11 +23,11 @@ dreams_router = APIRouter(
 )
 def get_dreams_list(
 	session: SessionDatabase,
-	limit: int = Query(20, title='Количество снов (по умолчанию 20)'),
-	offset: int = Query(0, title='Величина отступа (по умолчанию  0)'),
-	author: str = Query(None, title='Фильтр по юзернейму автора'),
-	search: str = Query(None, title='Поиск по тексту'),
-	favorited: str = Query(None, title='Фильтр по любимым снам юзернейма'),
+	limit: schema.CountType = Query(20, title='Количество снов (по умолчанию 20)'),
+	offset: schema.IndexType = Query(0, title='Величина отступа (по умолчанию  0)'),
+	author: schema.UsernameType = Query(None, title='Фильтр по юзернейму автора'),
+	search: schema.DreamDescriptionType = Query(None, title='Поиск по тексту'),
+	favorited: schema.UsernameType = Query(None, title='Фильтр по любимым снам юзернейма'),
 ) -> schema.MultipleDreams:
 	"""
 	Запрашивает dreams_service, возвращает результат согласно схеме.
@@ -119,7 +119,7 @@ def get_dream(
 def delete(
 	current_user: CurrentUser,
 	session: SessionDatabase,
-	id: int = Path(..., title='Идентификатор сна для удаления'),
+	id: schema.IndexType = Path(..., title='Идентификатор сна для удаления'),
 ) -> None:
 	"""
 	Получает текущего пользователя через инъекцию зависимостей,
@@ -157,7 +157,7 @@ def delete(
 def favorite(
 	current_user: CurrentUser,
 	session: SessionDatabase,
-	id: int = Path(..., title='Идентификатор сна для добавления в любимые'),
+	id: schema.IndexType = Path(..., title='Идентификатор сна для добавления в любимые'),
 ) -> schema.Dream:
 	"""
 	Получает текущего пользователя через инъекцию зависимостей,
@@ -194,7 +194,7 @@ def favorite(
 def unfavorite(
 	current_user: CurrentUser,
 	session: SessionDatabase,
-	id: int = Path(..., title='Идентификатор сна для удаления из любимых'),
+	id: schema.IndexType = Path(..., title='Идентификатор сна для удаления из любимых'),
 ) -> schema.Dream:
 	"""
 	Получает текущего пользователя через инъекцию зависимостей,
