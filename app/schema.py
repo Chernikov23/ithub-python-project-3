@@ -1,16 +1,15 @@
-from datetime import UTC, datetime
-from typing import Literal
+from datetime import datetime
+from typing import Any, Literal
 
 from pydantic import BaseModel as PBaseModel
-from pydantic import ConfigDict, Field, field_serializer
+from pydantic import ConfigDict, Field, field_validator
 
 
 class BaseModel(PBaseModel):
 	"""
 	Расширенная базовая модель, позволяет
 	красивее обрабатывать данные ORM-слоя
-	(правда отдельным методом, который вам
-	придётся разузнать)
+	через метод model_validate.
 	"""
 
 	model_config = ConfigDict(populate_by_name=True, from_attributes=True)
@@ -27,30 +26,28 @@ class UserToken(BaseModel):
 
 class UserCreate(BaseModel):
 	"""
-	TODO
 	Схема данных для создания пользователя
 
 	:username: строка длиной не менее 2 символов
 	:password: строка длиной не менее 8 символов
 	"""
 
-	pass
+	username: str = Field(min_length=2)
+	password: str = Field(min_length=8)
 
 
 class UserProfile(BaseModel):
 	"""
-	TODO
 	Схема данных для публичной информации пользователя
 
 	:username: строка
 	"""
 
-	pass
+	username: str
 
 
 class Dream(BaseModel):
 	"""
-	TODO
 	Схема для выдачи данных сна
 
 	:id: целое число
@@ -59,18 +56,27 @@ class Dream(BaseModel):
 	:created_at: строка, дататайм формата ISO
 	"""
 
-	pass
+	id: int
+	description: str
+	author: str
+	created_at: datetime
+
+	@field_validator('author', mode='before')
+	@classmethod
+	def _author_username(cls, v: Any) -> str:
+		if hasattr(v, 'username'):
+			return str(v.username)
+		return str(v)
 
 
 class NewDream(BaseModel):
 	"""
-	TODO
 	Схема данных для создания нового сна
 
 	:description: строка длиной не менее 5
 	"""
 
-	pass
+	description: str = Field(min_length=5)
 
 
 class MultipleDreams(BaseModel):
@@ -79,4 +85,5 @@ class MultipleDreams(BaseModel):
 	:dreams_count: количество снов в подвыборке, целое число
 	"""
 
-	pass
+	dreams: list[Dream]
+	dreams_count: int
