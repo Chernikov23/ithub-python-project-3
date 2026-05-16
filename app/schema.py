@@ -34,6 +34,9 @@ class UserCreate(BaseModel):
 	:password: строка длиной не менее 8 символов
 	"""
 
+	username: str = Field(min_length=2)
+	password: str = Field(min_length=8)
+
 	pass
 
 
@@ -44,6 +47,8 @@ class UserProfile(BaseModel):
 
 	:username: строка
 	"""
+
+	username: str
 
 	pass
 
@@ -59,6 +64,15 @@ class Dream(BaseModel):
 	:created_at: строка, дататайм формата ISO
 	"""
 
+	id: int
+	description: str
+	author: str
+	created_at: datetime
+
+	@field_serializer('created_at')
+	def serialize_created_at(self, value: datetime) -> str:
+		return value.astimezone(UTC).isoformat()
+
 	pass
 
 
@@ -70,6 +84,8 @@ class NewDream(BaseModel):
 	:description: строка длиной не менее 5
 	"""
 
+	description: str = Field(min_length=5)
+
 	pass
 
 
@@ -78,5 +94,8 @@ class MultipleDreams(BaseModel):
 	:dreams: список Dream-ов
 	:dreams_count: количество снов в подвыборке, целое число
 	"""
+
+	dreams: list[Dream]
+	dreams_count: int
 
 	pass

@@ -3,13 +3,16 @@ from app import schema
 
 
 def get_by_username(*, cursor: Cursor, username: str) -> schema.UserProfile | None:
-	"""
-	:cursor: курсор подключения к базе данных
-	:username: уникальный юзернейм пользователя
+	cursor.execute(
+		'SELECT username FROM users WHERE username = ?',
+		(username,),
+	)
 
-	Запрашивает пользователя из базы данных.
-	Если пользователь не найден, возвращает None.
-	Иначе - возвращает запись согласно схеме.
-	"""
+	user = cursor.fetchone()
+
+	if user is None:
+		return None
+
+	return schema.UserProfile(username=user[0])
 
 	raise NotImplemented

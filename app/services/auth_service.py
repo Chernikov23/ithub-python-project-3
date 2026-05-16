@@ -5,22 +5,32 @@ from app.security import create_access_token, get_password_hash, verify_password
 
 
 def register(*, cursor: Cursor, user_data: schema.UserCreate) -> None:
-	"""
-	:cursor: курсор подключения к базе данных
-	:user_data: данные для регистрации
+	password_hash = get_password_hash(user_data.password)
 
-	Добавляет пользователя в базу данных (хешируя пароль)
-	"""
+	cursor.execute(
+		'INSERT INTO users(username, password) VALUES (?, ?)',
+		(user_data.username, password_hash),
+	)
+
+	cursor.connection.commit()
 
 	raise NotImplementedError
 
 
 def authenticate(*, cursor: Cursor, user_data: schema.UserCreate) -> str | None:
-	"""
-	Находит пользователя по юзернейму,
-	сверяет хеш переданного пароля с истинным.
-	В случае несовпадения возвращает None.
-	Иначе - создает и возвращает токен доступа.
-	"""
+	cursor.execute(
+		'SELECT username, password FROM users WHERE username = ?',
+		(user_data.username,),
+	)
+
+	user = cursor.fetchone()
+
+	if user is None:
+		return None
+
+	if not verify_password(user_data.password, user[1]):
+		return None
+
+	return create_access_token({'sub': user[0]})
 
 	raise NotImplementedError

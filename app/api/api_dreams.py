@@ -31,12 +31,25 @@ def get_dreams_list(
 	offset: int = Query(0, title='Величина отступа (по умолчанию  0)'),
 	author: str = Query(None, title='Фильтр по юзернейму автора'),
 ) -> schema.MultipleDreams:
-	"""
-	Запрашивает dreams_service, возвращает результат согласно схеме.
+	items, total = dreams_service.get_list(
+		session=session,
+		limit=limit,
+		offset=offset,
+		author=author,
+	)
 
-	Примечание: здесь и далее при сериализации ответа будет красиво
-	воспользоваться упомянутым в schema.py методом валидации ORM-слоя
-	"""
+	return schema.MultipleDreams(
+		dreams=[
+			schema.Dream(
+				id=item.id,
+				description=item.description,
+				author=item.author.username,
+				created_at=item.created_at,
+			)
+			for item in items
+		],
+		dreams_count=total,
+	)
 
 	raise NotImplementedError
 
@@ -58,13 +71,24 @@ def create_dream(
 	session: SessionDatabase,
 	new_dream_payload: schema.NewDream,
 ) -> schema.Dream:
-	"""
-	Получает текущего пользователя через инъекцию зависимостей,
-	в случае ошибки выбрасывает CredentialsHTTPException.
-	Иначе - запрашивает dreams_service на создание сна. В случае
-	ошибки дублирования выбрасывает ConflictHTTPException с пояснением.
-	Иначе - возвращает результат согласно схеме.
-	"""
+	if current_user is None:
+		raise CredentialsHTTPException('Ошибка авторизации')
+
+	try:
+		dream = dreams_service.create(
+			session=session,
+			new_dream=new_dream_payload,
+			author=current_user,
+		)
+	except DuplicateDatabaseException:
+		raise ConflictHTTPException('Такой сон уже существует')
+
+	return schema.Dream(
+		id=dream.id,
+		description=dream.description,
+		author=dream.author.username,
+		created_at=dream.created_at,
+	)
 
 	raise NotImplementedError
 
@@ -83,11 +107,17 @@ def get_dream(
 	session: SessionDatabase,
 	id: int = Path(..., title='Идентификатор сна для чтения'),
 ) -> schema.Dream:
-	"""
-	Запрашивает dreams_service на получение сна по идентификатору.
-	Если сон не найден, выбрасывает NotFoundHTTPException c пояснением.
-	Иначе - возвращает результат согласно схеме
-	"""
+	dream = dreams_service.get_by_id(session=session, id=id)
+
+	if dream is None:
+		raise NotFoundHTTPException('Сон не найден')
+
+	return schema.Dream(
+		id=dream.id,
+		description=dream.description,
+		author=dream.author.username,
+		created_at=dream.created_at,
+	)
 
 	raise NotImplementedError
 
@@ -109,14 +139,17 @@ def delete(
 	session: SessionDatabase,
 	id: int = Path(..., title='Идентификатор сна для удаления'),
 ) -> None:
-	"""
-	Получает текущего пользователя через инъекцию зависимостей,
-	в случае ошибки выбрасывает CredentialsHTTPException.
-	Иначе - запрашивает dreams_service на получение сна по идентификатору.
-	Если сон не найден, выбрасывает NotFoundHTTPException c пояснением.
-	Иначе - проверяет, является ли текущий пользователь автором сна, который
-	он хочет удалить. Если нет - выбрасывает исключение c пояснением.
-	Иначе - запрашивает dreams_service на удаление сна.
-	"""
+	if current_user is None:
+		raise CredentialsHTTPException('Ошибка авторизации')
+
+	dream = dreams_service.get_by_id(session=session, id=id)
+
+	if dream is None:
+		raise NotFoundHTTPException('Сон не найден')
+
+	if dream.author.username != current_user.username:
+		raise CredentialsHTTPException('Недостаточно прав')
+
+	dreams_service.delete(session=session, dream_id=id)
 
 	raise NotImplementedError

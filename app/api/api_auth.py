@@ -22,12 +22,15 @@ def register(
 	cursor: CursorDatabase,
 	new_user_payload: schema.UserCreate,
 ) -> None:
-	"""
-	Запрашивает users_service на предмет наличия пользователя с переданным именем.
-	Если пользователь найден, выбрасывает ConflictHTTPException с пояснением.
-	Иначе - проводит регистрацию через auth_service.
-	"""
+	user = users_service.get_by_username(
+		cursor=cursor,
+		username=new_user_payload.username,
+	)
 
+	if user is not None:
+		raise ConflictHTTPException('Пользователь уже существует')
+
+	auth_service.register(cursor=cursor, user_data=new_user_payload)
 	raise NotImplementedError
 
 
@@ -45,12 +48,26 @@ def login(
 	cursor: CursorDatabase,
 	user_credentials: OAuth2Form,
 ) -> schema.UserToken:
-	"""
-	Запрашивает users_service на предмет наличия пользователя с переданным именем.
-	Если пользователь не найден, выбрасывает LoginHTTPException с пояснением.
-	Иначе - запрашивает аутентификацию через auth_service. Если пароль некорректен,
-	выбрасывает LoginHTTPException с пояснением. Иначе - возвращает токен согласно схеме.
-	"""
+	user = users_service.get_by_username(
+		cursor=cursor,
+		username=user_credentials.username,
+	)
+
+	if user is None:
+		raise LoginHTTPException('Некорректное имя пользователя или пароль')
+
+	token = auth_service.authenticate(
+		cursor=cursor,
+		user_data=schema.UserCreate(
+			username=user_credentials.username,
+			password=user_credentials.password,
+		),
+	)
+
+	if token is None:
+		raise LoginHTTPException('Некорректное имя пользователя или пароль')
+
+	return schema.UserToken(access_token=token)
 
 	raise NotImplementedError
 
@@ -66,9 +83,9 @@ def login(
 def get_current(
 	current_user: CurrentUser,
 ) -> schema.UserProfile:
-	"""
-	Получает текущего пользователя через инъекцию зависимостей, в случае
-	ошибки выбрасывает CredentialsHTTPException. Иначе - отвечает согласно схеме.
-	"""
+	if current_user is None:
+		raise CredentialsHTTPException('Ошибка авторизации')
+
+	return schema.UserProfile.model_validate(current_user)
 
 	raise NotImplementedError
