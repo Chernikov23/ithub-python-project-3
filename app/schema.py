@@ -105,7 +105,7 @@ class Dream(BaseModel):
 		в этом классовом методе провалидируйте 
 		value схемой UserProfile
 		"""
-		return value
+		return UserProfile.model_validate(value)
 	
 
 	@field_serializer('created_at')
@@ -123,7 +123,7 @@ class Dream(BaseModel):
 		Из этого вычисляемого поля верните 
 		количество лайкнувших пользователей 
 		'''
-		return 0
+		return len(self.favorited_by)
 
 
 class MultipleDreams(BaseModel):
