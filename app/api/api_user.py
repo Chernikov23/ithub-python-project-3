@@ -27,9 +27,7 @@ def get_current(
 	Получает текущего пользователя через инъекцию зависимостей, в случае 
 	ошибки выбрасывает CredentialsHTTPException. Иначе - отвечает согласно схеме.
 	"""
-
-	raise NotImplementedError
-
+	return current_user
 
 @users_router.get(
 	'/{username}',
@@ -51,7 +49,7 @@ def get_by_username(
 	пояснением. Иначе - отвечает согласно схеме.
 	"""
 
-	raise NotImplementedError
+	return users_service.get_by_username(cursor=session.connection().connection.cursor(), username=username)
 
 
 @users_router.put(
@@ -77,5 +75,9 @@ def update_current(
 	с пояснением. Иначе - запрашивает users_service на обновление данных. Возвращает
 	ответ согласно схеме.
 	"""
-	
-	raise NotImplementedError
+	user = users_service.update(
+		cursor=session.connection().connection.cursor(),
+		username=current_user.username,
+		update_data=update_user_payload
+	)
+	return user
