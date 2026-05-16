@@ -33,7 +33,7 @@ class Username(BaseModel):
 
 	:username: имя пользователя (строка)
 	"""
-
+	username: str = Field(..., min_length=3, max_length=50)
 	pass
 
 
@@ -46,7 +46,9 @@ class UserCreate(BaseModel):
 	:bio: биография (опциональное строковое поле) 
 	"""
 
-	pass
+	username: str = Field(..., min_length=3, max_length=50)
+	password: str = Field(..., min_length=6, max_length=100)
+	bio: str | None 
 
 
 class UserUpdate(BaseModel):
@@ -55,7 +57,7 @@ class UserUpdate(BaseModel):
 
 	:bio: биография (опциональное строковое поле)
 	"""
-
+	bio: str | None
 	pass
 
 
@@ -66,7 +68,8 @@ class UserProfile(BaseModel):
 	:username: имя пользователя
 	:bio: биография (опциональное строковое поле)
 	"""
-
+	username: str
+	bio: str | None
 	pass
 
 
@@ -76,7 +79,7 @@ class NewDream(BaseModel):
 
 	:description: описание сна (строка минимальной длины 5)
 	"""
-
+	description: str = Field(..., min_length=5)
 	pass
 
 
@@ -89,6 +92,11 @@ class Dream(BaseModel):
 	:created_at: utc-datetime в ISO-формате
 	:favorited_by: список лайкнувших пользователей (список строк)
 	"""
+	id: int
+	description: str
+	author: UserProfile
+	created_at: datetime
+	favorited_by: list[str]
 
 	@field_validator('author', mode='before')
 	@classmethod
@@ -125,5 +133,6 @@ class MultipleDreams(BaseModel):
 	:dreams: список объектов схемы Dream
 	:dreams_count: количество снов подвыборки (целое число)
 	"""
-
+	dreams: list[Dream]
+	dreams_count: int
 	pass

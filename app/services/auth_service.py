@@ -12,6 +12,7 @@ def register(*, cursor: Cursor, user_data: schema.UserCreate) -> None:
 	Добавляет пользователя в базу данных (хешируя пароль)
 	"""
 
+	
 	raise NotImplementedError
 
 
