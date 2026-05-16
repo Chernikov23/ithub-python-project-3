@@ -27,8 +27,7 @@ def register(
 	Иначе - проводит регистрацию через auth_service. 
 	"""
 
-	raise NotImplementedError
-
+	auth_service.register(cursor=session.connection().connection.cursor(), user_data=new_user_payload)
 
 @auth_router.post(
 	'/login',
@@ -51,4 +50,5 @@ def login(
 	выбрасывает LoginHTTPException с пояснением. Иначе - возвращает токен согласно схеме.
 	"""
 
-	raise NotImplementedError
+	token = auth_service.authenticate(cursor=session.connection().connection.cursor(), user_data=user_credentials)
+	return schema.UserToken(access_token=token, token_type='bearer')
