@@ -1,11 +1,12 @@
 import sqlite3
 from collections.abc import Sequence
 
-from sqlalchemy import Select, select
+from sqlalchemy import Select, select, text
 from sqlalchemy.orm import Session, joinedload
 
 from app import schema
 from app.database import SessionLocal, exceptions, models
+from app.services import users_service
 
 
 def get_by_id(session: Session, id: int) -> models.Dream | None:
@@ -58,20 +59,33 @@ def get_list(
 
 
 
-def create(*, session: Session, new_dream: schema.NewDream, author: schema.UserProfile) -> models.Dream:
-	"""
-	:session: сессия sqlalchemy
-	:new_dream: данные сна для добавления
-	:author: данные об авторе
-	
-	Добавляет новый сон, включая информацию об авторе, в базу данных.
-	В случае, если такой сон уже добавлен, выбрасывает DuplicateDatabaseException.
-	Иначе - возвращает ORM-объект с новым сном.
-	"""
+def create(
+    *,
+    session: Session,
+    new_dream: schema.NewDream,
+    author: schema.UserProfile,
+) -> models.Dream:
 
-	raise NotImplementedError
+    exists = session.query(models.Dream).filter(
+        models.Dream.description == new_dream.description,
+        models.Dream.author_id == author.username,
+    ).first()
 
+    if exists:
+        raise exceptions.DuplicateDatabaseException(
+            "Пользователь уже добавлял этот сон"
+        )
 
+    dream = models.Dream(
+        description=new_dream.description,
+        author_id=author.username,
+    )
+
+    session.add(dream)
+    session.commit()
+    session.refresh(dream)
+
+    return dream
 
 def delete(*, session: Session, dream_id: int) -> None:
 	"""

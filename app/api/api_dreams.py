@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Path, Query, status
+from fastapi import APIRouter, HTTPException, Path, Query, status
 
 from app import schema
 from app.api.exceptions import ConflictHTTPException, NotFoundHTTPException, CredentialsHTTPException
@@ -52,19 +52,31 @@ def get_dreams_list(
 	}
 )
 def create_dream(
-	current_user: CurrentUser,
-	session: SessionDatabase,
-	new_dream_payload: schema.NewDream,
+    current_user: CurrentUser,
+    session: SessionDatabase,
+    new_dream_payload: schema.NewDream,
 ) -> schema.Dream:
-	"""
-	Получает текущего пользователя через инъекцию зависимостей,
-	в случае ошибки выбрасывает CredentialsHTTPException.
-	Иначе - запрашивает dreams_service на создание сна. В случае 
-	ошибки дублирования выбрасывает ConflictHTTPException с пояснением. 
-	Иначе - возвращает результат согласно схеме.	
-	"""
 
-	raise NotImplementedError
+    try:
+        dream = dreams_service.create(
+            session=session,
+            new_dream=new_dream_payload,
+            author=current_user,
+        )
+
+        return schema.Dream(
+            id=dream.id,
+            description=dream.description,
+            created_at=dream.created_at,
+            author=dream.author.username,
+            favorited_by=[],
+        )
+
+    except DuplicateDatabaseException:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Сон уже существует",
+        )
 
 
 @dreams_router.get(
