@@ -12,8 +12,8 @@ def register(*, session: Session, user_data: schema.UserCreate) -> None:
 		password=hashed
 	)
 	session.add(new_user)
-	session.commit()      # ИСПРАВЛЕНО: Меняем flush на commit для регистрации
-	session.expire_all()  # Очищаем кэш
+	session.commit()
+	session.expire_all()
 
 
 def authenticate(*, session: Session, user_data: schema.UserCreate) -> str | None:
