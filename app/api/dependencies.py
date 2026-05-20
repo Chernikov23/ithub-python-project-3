@@ -36,6 +36,7 @@ def _get_db_sqlite() -> Generator[sqlite3.Cursor]:
 		connection.commit()
 	except sqlite3.DatabaseError:
 		connection.rollback()
+		raise
 	finally:
 		connection.close()
 

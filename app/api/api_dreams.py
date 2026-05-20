@@ -5,6 +5,7 @@ from app.api.exceptions import (
 	ConflictHTTPException,
 	NotFoundHTTPException,
 	CredentialsHTTPException,
+	NotAuthorizedHTTPException
 )
 from app.api.dependencies import CurrentUser, SessionDatabase
 from app.database.exceptions import DuplicateDatabaseException
@@ -37,8 +38,27 @@ def get_dreams_list(
 	Примечание: здесь и далее при сериализации ответа будет красиво
 	воспользоваться упомянутым в schema.py методом валидации ORM-слоя
 	"""
+	dreams,total = dreams_service.get_list(
+		session=session,
+		limit=limit,
+		offset=offset,
+		author=author
+	)
 
-	raise NotImplementedError
+	dreams_schema = [
+    schema.Dream(
+        id=dream.id,
+        description=dream.description,
+        author=dream.author.username,
+        created_at=dream.created_at
+    )
+    for dream in dreams
+	]
+
+	return schema.MultipleDreams(
+	    dreams=dreams_schema,
+	    dreams_count=total
+	)
 
 
 @dreams_router.post(
@@ -65,8 +85,23 @@ def create_dream(
 	ошибки дублирования выбрасывает ConflictHTTPException с пояснением.
 	Иначе - возвращает результат согласно схеме.
 	"""
+	try:
+		dream = dreams_service.create(
+			session=session,
+			new_dream=new_dream_payload,
+			author=current_user
+		)
+		if dream is None:
+			raise Exception("Dream creation failed")
+	except DuplicateDatabaseException:
+		raise ConflictHTTPException(detail="дупликат")
 
-	raise NotImplementedError
+	return schema.Dream(
+		id=dream.id,
+		description=dream.description,
+		author=current_user.username,
+		created_at=dream.created_at
+	)
 
 
 @dreams_router.get(
@@ -87,8 +122,16 @@ def get_dream(
 	Если сон не найден, выбрасывает NotFoundHTTPException c пояснением.
 	Иначе - возвращает результат согласно схеме
 	"""
+	dream = dreams_service.get_by_id(session=session, id=id)
+	if dream is None:
+		raise NotFoundHTTPException(detail="сон не найден")
 
-	raise NotImplementedError
+	return schema.Dream(
+        id=dream.id,
+        description=dream.description,
+        author=dream.author.username,
+        created_at=dream.created_at
+    )
 
 
 @dreams_router.delete(
@@ -117,5 +160,12 @@ def delete(
 	он хочет удалить. Если нет - выбрасывает исключение c пояснением.
 	Иначе - запрашивает dreams_service на удаление сна.
 	"""
+	dream = dreams_service.get_by_id(session=session, id=id)
 
-	raise NotImplementedError
+	if dream is None:
+		raise NotFoundHTTPException(detail="сна нет")
+	
+	if dream.author_id != current_user.username:
+		raise NotAuthorizedHTTPException(detail="не автор сна")
+
+	dreams_service.delete(session=session, dream_id=id)

@@ -1,12 +1,15 @@
 import sqlite3
 from collections.abc import Sequence
+from datetime import datetime
+import time 
 
-from sqlalchemy import Select, select
+from sqlalchemy import Select, select, func
 from sqlalchemy.orm import Session, joinedload
 
 from app import schema
 from app.database import models
 
+from app.database.exceptions import DuplicateDatabaseException
 
 def get_by_id(session: Session, id: int) -> models.Dream | None:
 	"""
@@ -18,7 +21,11 @@ def get_by_id(session: Session, id: int) -> models.Dream | None:
 	(например, используя метод joined_load).
 	"""
 
-	raise NotImplementedError
+	return session.execute(
+        select(models.Dream)
+        .options(joinedload(models.Dream.author))
+        .where(models.Dream.id == id)
+    ).unique().scalar_one_or_none()
 
 
 def get_list(
@@ -44,24 +51,47 @@ def get_list(
 	Подсчитывает количество снов после всех наложенных фильтров.
 	Наконец, возвращает это число вместе с пагинированным результатом.
 	"""
+	query = select(models.Dream).options(joinedload(models.Dream.author))
 
-	raise NotImplementedError
+	if author:
+		query = query.where(models.Dream.author.has(username=author))
 
+	total = session.execute(
+        select(func.count()).select_from(models.Dream).where(query.whereclause)
+    ).scalar()
+
+	dreams = session.execute(
+    query.limit(limit).offset(offset)
+	).unique.scalars().all()
+
+
+
+	return dreams,total
 
 def create(
-	*, session: Session, new_dream: schema.NewDream, author: schema.UserProfile
+    *, session: Session, new_dream: schema.NewDream, author: schema.UserProfile
 ) -> models.Dream:
-	"""
-	:session: сессия sqlalchemy
-	:new_dream: данные сна для добавления
-	:author: данные об авторе
-
-	Добавляет новый сон, включая информацию об авторе, в базу данных.
-	В случае, если такой сон уже добавлен, выбрасывает DuplicateDatabaseException.
-	Иначе - возвращает ORM-объект с новым сном.
-	"""
-
-	raise NotImplementedError
+    existing = session.execute(
+        select(models.Dream).where(
+            models.Dream.author_id == author.username,
+            models.Dream.description == new_dream.description
+        )
+    ).first()
+    
+    if existing:
+        raise DuplicateDatabaseException('дубликат')
+    
+    dream = models.Dream(
+        author_id=author.username,
+        description=new_dream.description,
+        created_at=datetime.now()
+    )
+    
+    session.add(dream)
+    session.flush()
+    session.refresh(dream, attribute_names=['author'])
+    
+    return dream
 
 
 def delete(*, session: Session, dream_id: int) -> None:
@@ -71,5 +101,6 @@ def delete(*, session: Session, dream_id: int) -> None:
 
 	Удаляет сон из базы данных.
 	"""
-
-	raise NotImplementedError
+	dream = session.get(models.Dream,dream_id)
+	if dream:
+		session.delete(dream)

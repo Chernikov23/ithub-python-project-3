@@ -26,57 +26,22 @@ class UserToken(BaseModel):
 
 
 class UserCreate(BaseModel):
-	"""
-	TODO
-	Схема данных для создания пользователя
-
-	:username: строка длиной не менее 2 символов
-	:password: строка длиной не менее 8 символов
-	"""
-
-	pass
-
+	username:str = Field(...,min_length=2)
+	password:str = Field(...,min_length=8)
 
 class UserProfile(BaseModel):
-	"""
-	TODO
-	Схема данных для публичной информации пользователя
-
-	:username: строка
-	"""
-
-	pass
-
+	username:str
 
 class Dream(BaseModel):
-	"""
-	TODO
-	Схема для выдачи данных сна
-
-	:id: целое число
-	:description: строка описания
-	:author: строка, юзернейм автора
-	:created_at: строка, дататайм формата ISO
-	"""
-
-	pass
-
+	id:int
+	description:str
+	author:str
+	created_at: datetime
 
 class NewDream(BaseModel):
-	"""
-	TODO
-	Схема данных для создания нового сна
-
-	:description: строка длиной не менее 5
-	"""
-
-	pass
+	description:str = Field(...,min_length=5)
 
 
 class MultipleDreams(BaseModel):
-	"""
-	:dreams: список Dream-ов
-	:dreams_count: количество снов в подвыборке, целое число
-	"""
-
-	pass
+	dreams: list[Dream]
+	dreams_count:int
