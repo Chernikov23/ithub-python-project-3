@@ -1,10 +1,12 @@
 from fastapi import APIRouter, status
 
 from app import schema
-from app.api.exceptions import ConflictHTTPException, LoginHTTPException, CredentialsHTTPException, NotFoundHTTPException
-from app.api.dependencies import OAuth2Form, CurrentUser, CursorDatabase
+from app.api.dependencies import CurrentUser, CursorDatabase, OAuth2Form
+from app.api.exceptions import (
+	ConflictHTTPException,
+	LoginHTTPException,
+)
 from app.services import auth_service, users_service
-
 
 auth_router = APIRouter(prefix='/auth', tags=['Аккаунты'])
 
@@ -27,8 +29,12 @@ def register(
 	Если пользователь найден, выбрасывает ConflictHTTPException с пояснением.
 	Иначе - проводит регистрацию через auth_service.
 	"""
-
-	raise NotImplementedError
+	existing_username = users_service.get_by_username(
+		cursor=cursor, username=new_user_payload.username
+	)
+	if existing_username:
+		raise ConflictHTTPException(detail='Имя занято')
+	auth_service.register(cursor=cursor, user_data=new_user_payload)
 
 
 @auth_router.post(
@@ -51,8 +57,19 @@ def login(
 	Иначе - запрашивает аутентификацию через auth_service. Если пароль некорректен,
 	выбрасывает LoginHTTPException с пояснением. Иначе - возвращает токен согласно схеме.
 	"""
+	user = users_service.get_by_username(cursor=cursor, username=user_credentials.username)
+	if not user:
+		raise LoginHTTPException()
 
-	raise NotImplementedError
+	token = auth_service.authenticate(
+		cursor=cursor,
+		user_data=schema.UserCreate(
+			username=user_credentials.username, password=user_credentials.password
+		),
+	)
+	if not token:
+		raise LoginHTTPException()
+	return schema.UserToken(access_token=token, token_type='bearer')
 
 
 @auth_router.get(
@@ -71,4 +88,4 @@ def get_current(
 	ошибки выбрасывает CredentialsHTTPException. Иначе - отвечает согласно схеме.
 	"""
 
-	raise NotImplementedError
+	return schema.UserProfile.model_validate(current_user)

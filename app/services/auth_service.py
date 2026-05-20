@@ -12,7 +12,12 @@ def register(*, cursor: Cursor, user_data: schema.UserCreate) -> None:
 	Добавляет пользователя в базу данных (хешируя пароль)
 	"""
 
-	raise NotImplementedError
+	hashed_password = get_password_hash(user_data.password)
+
+	cursor.execute(
+		'INSERT INTO users (username, password) VALUES (?, ?)',
+		(user_data.username, hashed_password),
+	)
 
 
 def authenticate(*, cursor: Cursor, user_data: schema.UserCreate) -> str | None:
@@ -23,4 +28,15 @@ def authenticate(*, cursor: Cursor, user_data: schema.UserCreate) -> str | None:
 	Иначе - создает и возвращает токен доступа.
 	"""
 
-	raise NotImplementedError
+	cursor.execute('SELECT password FROM users WHERE username = ?', (user_data.username,))
+	user_record = cursor.fetchone()
+
+	if not user_record:
+		return None
+
+	hashed_password = user_record[0]
+
+	if not verify_password(user_data.password, hashed_password):
+		return None
+
+	return create_access_token(subject=user_data.username)

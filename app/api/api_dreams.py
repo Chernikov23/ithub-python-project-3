@@ -1,12 +1,13 @@
 from fastapi import APIRouter, Path, Query, status
 
 from app import schema
+from app.api.dependencies import CurrentUser, SessionDatabase
 from app.api.exceptions import (
 	ConflictHTTPException,
-	NotFoundHTTPException,
 	CredentialsHTTPException,
+	NotAuthorizedHTTPException,
+	NotFoundHTTPException,
 )
-from app.api.dependencies import CurrentUser, SessionDatabase
 from app.database.exceptions import DuplicateDatabaseException
 from app.services import dreams_service
 
@@ -37,8 +38,13 @@ def get_dreams_list(
 	Примечание: здесь и далее при сериализации ответа будет красиво
 	воспользоваться упомянутым в schema.py методом валидации ORM-слоя
 	"""
-
-	raise NotImplementedError
+	dreams, total = dreams_service.get_list(
+		session=session,
+		limit=limit,
+		offset=offset,
+		author=author
+	)
+	return schema.MultipleDreams(dreams=dreams, dreams_count=total)
 
 
 @dreams_router.post(
@@ -65,8 +71,16 @@ def create_dream(
 	ошибки дублирования выбрасывает ConflictHTTPException с пояснением.
 	Иначе - возвращает результат согласно схеме.
 	"""
+	try:
+		dream = dreams_service.create(
+			session=session, new_dream=new_dream_payload, author=current_user
+		)
+		if dream is None:
+			raise Exception('Dream creation failed')
+	except DuplicateDatabaseException:
+		raise ConflictHTTPException(detail='Сон уже существует')
 
-	raise NotImplementedError
+	return schema.Dream.model_validate(dream)
 
 
 @dreams_router.get(
@@ -87,8 +101,10 @@ def get_dream(
 	Если сон не найден, выбрасывает NotFoundHTTPException c пояснением.
 	Иначе - возвращает результат согласно схеме
 	"""
-
-	raise NotImplementedError
+	dream = dreams_service.get_by_id(session=session, id=id)
+	if not dream:
+		raise NotFoundHTTPException(detail='Сон не найден')
+	return schema.Dream.model_validate(dream)
 
 
 @dreams_router.delete(
@@ -117,5 +133,13 @@ def delete(
 	он хочет удалить. Если нет - выбрасывает исключение c пояснением.
 	Иначе - запрашивает dreams_service на удаление сна.
 	"""
+	if not current_user:
+		raise CredentialsHTTPException()
 
-	raise NotImplementedError
+	dream = dreams_service.get_by_id(session=session, id=id)
+	if not dream:
+		raise NotFoundHTTPException(detail='Сон не найден')
+
+	if dream.author_id != current_user.username:
+		raise NotAuthorizedHTTPException(detail='У вас нет прав')
+	dreams_service.delete(session=session, dream_id=id)
