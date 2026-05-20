@@ -1,29 +1,46 @@
-from datetime import UTC, datetime, timedelta
+import hashlib
+from datetime import datetime, timedelta
 
-import jwt
-from pwdlib import PasswordHash
+from jose import jwt
 
 from app.config import settings
 
-
-def create_access_token(subject: str) -> str:
-	expire = datetime.now(UTC) + timedelta(minutes=settings.JWT_EXPIRE)
-	to_encode = {'exp': expire, 'sub': subject}
-	return jwt.encode(to_encode, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
+ALGORITHM = settings.JWT_ALGORITHM
 
 
-def decode_access_token(token: str) -> str:
-	token_data = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
-	return token_data['sub']
+def hash_password(plain_password: str) -> str:
+	derived = hashlib.pbkdf2_hmac(
+		'sha256',
+		plain_password.encode(),
+		settings.PASSWORD_SALT.encode()
+		if isinstance(settings.PASSWORD_SALT, str)
+		else settings.PASSWORD_SALT,
+		100000,
+	)
+	return derived.hex()
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-	# TODO
-	return False
+	try:
+		salt = (
+			settings.PASSWORD_SALT.encode()
+			if isinstance(settings.PASSWORD_SALT, str)
+			else settings.PASSWORD_SALT
+		)
+		derived = hashlib.pbkdf2_hmac(
+			'sha256',
+			plain_password.encode(),
+			salt,
+			100000,
+		)
+		return derived.hex() == hashed_password
+	except Exception:
+		return False
 
 
-def get_password_hash(password: str) -> str:
-	return password_hasher.hash(password, salt=settings.PASSWORD_SALT)
-
-
-password_hasher = PasswordHash.recommended()
+def create_access_token(data: dict) -> str:
+	to_encode = data.copy()
+	expire = datetime.utcnow() + timedelta(seconds=settings.JWT_EXPIRE)
+	to_encode.update({'exp': expire})
+	encoded_jwt = jwt.encode(to_encode, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
+	return encoded_jwt

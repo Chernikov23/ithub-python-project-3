@@ -1,40 +1,16 @@
-from fastapi import HTTPException, status
+from fastapi import HTTPException, Request, status
+from fastapi.responses import JSONResponse
 
 
-class ConflictHTTPException(HTTPException):
-	def __init__(self, detail: str | None = 'Ошибка при создании записи'):
-		super().__init__(status_code=status.HTTP_409_CONFLICT, detail=detail)
+async def http_404_not_found_handler(request: Request, exc: HTTPException) -> JSONResponse:
+	return JSONResponse(
+		status_code=status.HTTP_404_NOT_FOUND,
+		content={'message': 'Not Found'},
+	)
 
 
-class CredentialsHTTPException(HTTPException):
-	def __init__(self):
-		super().__init__(
-			status_code=status.HTTP_401_UNAUTHORIZED,
-			detail='Ошибка при проверке данных',
-			headers={'WWW-Authenticate': 'Bearer'},
-		)
-
-
-class LoginHTTPException(HTTPException):
-	def __init__(self):
-		super().__init__(
-			status_code=status.HTTP_401_UNAUTHORIZED,
-			detail='Некорректное имя или пароль',
-			headers={'WWW-Authenticate': 'Bearer'},
-		)
-
-
-class NotFoundHTTPException(HTTPException):
-	def __init__(self, detail: str | None = 'Ресурс не найден'):
-		super().__init__(
-			status_code=status.HTTP_404_NOT_FOUND,
-			detail=detail,
-		)
-
-
-class NotAuthorizedHTTPException(HTTPException):
-	def __init__(self, detail: str | None = 'Недостаточно прав'):
-		super().__init__(
-			status_code=status.HTTP_403_FORBIDDEN,
-			detail=detail,
-		)
+async def http_403_forbidden_handler(request: Request, exc: HTTPException) -> JSONResponse:
+	return JSONResponse(
+		status_code=status.HTTP_403_FORBIDDEN,
+		content={'message': 'Forbidden'},
+	)

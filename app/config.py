@@ -1,31 +1,19 @@
-import os
-import secrets
-import typing
-
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-def get_database_uri():
-	if os.getenv('PYTHON_ENVIRONMENT') == 'testing':
-		return 'sqlite:///./app/database/testing.sqlite3'
-	return 'sqlite:///./app/database/local.sqlite3'
-
-
 class Settings(BaseSettings):
-	DEBUG: bool = os.getenv('PYTHON_ENVIRONMENT') != 'testing'
-
-	JWT_SECRET_KEY: str = secrets.token_urlsafe(32)
-	JWT_EXPIRE: int = 60 * 24 * 8
-	JWT_ALGORITHM: typing.Literal['HS256'] = 'HS256'
-
-	PASSWORD_SALT: bytes = secrets.token_bytes(32)
-
-	DATABASE_URI: str = get_database_uri()
+	# Указываем значения по умолчанию, чтобы не было ошибки "Field required"
+	DATABASE_URI: str = 'sqlite:///./app/database/local.sqlite3'
+	PASSWORD_SALT: str = 'super_secret_salt_change_me'
+	JWT_SECRET_KEY: str = 'another_secret_key_for_jwt'
+	JWT_ALGORITHM: str = 'HS256'
+	JWT_EXPIRE: int = 3600
+	DEBUG: bool = False
 
 	model_config = SettingsConfigDict(
 		env_file='.env',
-		strict=True,
+		extra='ignore',
 	)
 
 
-settings = Settings()
+settings: Settings = Settings()
