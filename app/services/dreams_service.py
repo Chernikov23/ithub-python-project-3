@@ -18,7 +18,9 @@ def get_by_id(session: Session, id: int) -> models.Dream | None:
 	(например, используя метод joined_load).
 	"""
 
-	raise NotImplementedError
+	return session.scalar(
+		select(models.Dream).options(joinedload(models.Dream.author)).where(models.Dream.id == id)
+	)
 
 
 def get_list(
@@ -45,7 +47,15 @@ def get_list(
 	Наконец, возвращает это число вместе с пагинированным результатом.
 	"""
 
-	raise NotImplementedError
+	query = select(models.Dream).options(joinedload(models.Dream.author)).order_by(models.Dream.id.desc())
+	if author:
+		# join user table to filter by username (case-insensitive)
+		query = query.join(models.User).where(models.User.username.ilike(f'%{author}%'))
+	all_items = session.scalars(query).unique().all()
+	total = len(all_items)
+	# apply pagination
+	items = all_items[offset : offset + limit]
+	return items, total
 
 
 def create(
@@ -61,7 +71,23 @@ def create(
 	Иначе - возвращает ORM-объект с новым сном.
 	"""
 
-	raise NotImplementedError
+	# find author user ORM object
+	author_obj = session.get(models.User, author.username)
+	if author_obj is None:
+		raise ValueError('author not found')
+	dream = models.Dream(description=new_dream.description, author=author_obj)
+	session.add(dream)
+	try:
+		session.commit()
+		session.refresh(dream)
+		return dream
+	except Exception as e:
+		session.rollback()
+		from sqlalchemy.exc import IntegrityError
+		from app.database.exceptions import DuplicateDatabaseException
+		if isinstance(e, IntegrityError):
+			raise DuplicateDatabaseException()
+		raise
 
 
 def delete(*, session: Session, dream_id: int) -> None:
@@ -72,4 +98,8 @@ def delete(*, session: Session, dream_id: int) -> None:
 	Удаляет сон из базы данных.
 	"""
 
-	raise NotImplementedError
+	dream = session.get(models.Dream, dream_id)
+	if dream is None:
+		raise ValueError('not found')
+	session.delete(dream)
+	session.commit()

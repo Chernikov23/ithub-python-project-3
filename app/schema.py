@@ -34,7 +34,12 @@ class UserCreate(BaseModel):
 	:password: строка длиной не менее 8 символов
 	"""
 
-	pass
+	username: str = Field(..., min_length=2)
+	password: str = Field(..., min_length=8)
+
+	@field_serializer('username')
+	def _strip_username(self, v: str) -> str:  # ensure no surrounding spaces
+		return v.strip()
 
 
 class UserProfile(BaseModel):
@@ -45,7 +50,7 @@ class UserProfile(BaseModel):
 	:username: строка
 	"""
 
-	pass
+	username: str
 
 
 class Dream(BaseModel):
@@ -59,24 +64,21 @@ class Dream(BaseModel):
 	:created_at: строка, дататайм формата ISO
 	"""
 
-	pass
+	id: int
+	description: str
+	author: str
+	created_at: datetime
 
 
 class NewDream(BaseModel):
-	"""
-	TODO
-	Схема данных для создания нового сна
+	description: str = Field(..., min_length=5)
 
-	:description: строка длиной не менее 5
-	"""
-
-	pass
+	@field_serializer('description')
+	def _strip_description(self, v: str) -> str:
+		return v.strip()
 
 
 class MultipleDreams(BaseModel):
-	"""
-	:dreams: список Dream-ов
-	:dreams_count: количество снов в подвыборке, целое число
-	"""
 
-	pass
+	dreams: list[Dream]
+	dreams_count: int

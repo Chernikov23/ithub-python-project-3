@@ -5,6 +5,7 @@ from app.api.exceptions import (
 	ConflictHTTPException,
 	NotFoundHTTPException,
 	CredentialsHTTPException,
+	NotAuthorizedHTTPException,
 )
 from app.api.dependencies import CurrentUser, SessionDatabase
 from app.database.exceptions import DuplicateDatabaseException
@@ -38,7 +39,12 @@ def get_dreams_list(
 	воспользоваться упомянутым в schema.py методом валидации ORM-слоя
 	"""
 
-	raise NotImplementedError
+	items, total = dreams_service.get_list(session=session, limit=limit, offset=offset, author=author)
+
+	def _map(d):
+		return schema.Dream(id=d.id, description=d.description, author=d.author.username, created_at=d.created_at)
+
+	return schema.MultipleDreams(dreams=[_map(d) for d in items], dreams_count=total)
 
 
 @dreams_router.post(
@@ -66,7 +72,11 @@ def create_dream(
 	Иначе - возвращает результат согласно схеме.
 	"""
 
-	raise NotImplementedError
+	try:
+		created = dreams_service.create(session=session, new_dream=new_dream_payload, author=current_user)
+		return schema.Dream(id=created.id, description=created.description, author=created.author.username, created_at=created.created_at)
+	except DuplicateDatabaseException:
+		raise ConflictHTTPException(detail='Пользователь уже добавлял этот сон')
 
 
 @dreams_router.get(
@@ -88,7 +98,10 @@ def get_dream(
 	Иначе - возвращает результат согласно схеме
 	"""
 
-	raise NotImplementedError
+	dream = dreams_service.get_by_id(session=session, id=id)
+	if not dream:
+		raise NotFoundHTTPException(detail='Сон не найден')
+	return schema.Dream(id=dream.id, description=dream.description, author=dream.author.username, created_at=dream.created_at)
 
 
 @dreams_router.delete(
@@ -118,4 +131,11 @@ def delete(
 	Иначе - запрашивает dreams_service на удаление сна.
 	"""
 
-	raise NotImplementedError
+	dream = dreams_service.get_by_id(session=session, id=id)
+	if not dream:
+		raise NotFoundHTTPException(detail='Сон не найден')
+	if dream.author.username != current_user.username:
+		raise NotAuthorizedHTTPException(detail='Пользователь не является автором сна')
+	# perform deletion
+	dreams_service.delete(session=session, dream_id=id)
+	return None
