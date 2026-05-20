@@ -1,11 +1,12 @@
 import sqlite3
 from collections.abc import Sequence
 
-from sqlalchemy import Select, select
+from sqlalchemy import Select, select, func
 from sqlalchemy.orm import Session, joinedload
 
 from app import schema
 from app.database import models
+from app.database.exceptions import DuplicateDatabaseException
 
 
 def get_by_id(session: Session, id: int) -> models.Dream | None:
@@ -18,7 +19,11 @@ def get_by_id(session: Session, id: int) -> models.Dream | None:
 	(например, используя метод joined_load).
 	"""
 
-	raise NotImplementedError
+	return session.scalar(
+		select(models.Dream)
+		.options(joinedload(models.Dream.author))
+		.where(models.Dream.id == id)
+	)
 
 
 def get_list(
@@ -45,7 +50,21 @@ def get_list(
 	Наконец, возвращает это число вместе с пагинированным результатом.
 	"""
 
-	raise NotImplementedError
+	query = select(models.Dream).options(joinedload(models.Dream.author))
+	
+	if author:
+		query = query.where(models.Dream.author.has(models.User.username.ilike(f'%{author}%')))
+	
+	count_query = select(func.count()).select_from(query.subquery())
+	total = session.scalar(count_query) or 0
+	
+	dreams = session.scalars(
+		query.order_by(models.Dream.created_at.desc())
+		.offset(offset)
+		.limit(limit)
+	).unique().all()
+	
+	return dreams, total
 
 
 def create(
@@ -61,7 +80,33 @@ def create(
 	Иначе - возвращает ORM-объект с новым сном.
 	"""
 
-	raise NotImplementedError
+	user = session.scalar(
+		select(models.User).where(models.User.username == author.username)
+	)
+	
+	if not user:
+		raise ValueError("User not found")
+	
+	existing = session.scalar(
+		select(models.Dream).where(
+			models.Dream.author_id == user.username,
+			models.Dream.description == new_dream.description
+		)
+	)
+	
+	if existing:
+		raise DuplicateDatabaseException("Сон с таким описанием уже существует")
+	
+	dream = models.Dream(
+		description=new_dream.description,
+		author=user
+	)
+	
+	session.add(dream)
+	session.commit()
+	session.refresh(dream)
+	
+	return dream
 
 
 def delete(*, session: Session, dream_id: int) -> None:
@@ -72,4 +117,7 @@ def delete(*, session: Session, dream_id: int) -> None:
 	Удаляет сон из базы данных.
 	"""
 
-	raise NotImplementedError
+	dream = session.get(models.Dream, dream_id)
+	if dream:
+		session.delete(dream)
+		session.commit()

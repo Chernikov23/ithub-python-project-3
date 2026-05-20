@@ -28,14 +28,18 @@ def register(
 	Иначе - проводит регистрацию через auth_service.
 	"""
 
-	raise NotImplementedError
+	existing = users_service.get_by_username(cursor=cursor, username=new_user_payload.username)
+	if existing:
+		raise ConflictHTTPException(detail='Пользователь с таким именем уже существует')
+	
+	auth_service.register(cursor=cursor, user_data=new_user_payload)
 
 
 @auth_router.post(
 	'/login',
 	summary='Логин',
 	response_model=schema.UserToken,
-	status_code=201,
+	status_code=200,
 	responses={
 		status.HTTP_401_UNAUTHORIZED: {'description': 'Некорректное имя или пароль'},
 		status.HTTP_422_UNPROCESSABLE_CONTENT: {'description': 'Данные не валидны'},
@@ -52,7 +56,16 @@ def login(
 	выбрасывает LoginHTTPException с пояснением. Иначе - возвращает токен согласно схеме.
 	"""
 
-	raise NotImplementedError
+	user_data = schema.UserCreate(
+		username=user_credentials.username,
+		password=user_credentials.password
+	)
+	
+	token = auth_service.authenticate(cursor=cursor, user_data=user_data)
+	if not token:
+		raise LoginHTTPException()
+	
+	return schema.UserToken(access_token=token)
 
 
 @auth_router.get(
@@ -71,4 +84,4 @@ def get_current(
 	ошибки выбрасывает CredentialsHTTPException. Иначе - отвечает согласно схеме.
 	"""
 
-	raise NotImplementedError
+	return current_user

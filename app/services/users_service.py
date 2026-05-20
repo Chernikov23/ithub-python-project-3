@@ -1,4 +1,5 @@
 from sqlite3 import Cursor
+
 from app import schema
 
 
@@ -12,4 +13,9 @@ def get_by_username(*, cursor: Cursor, username: str) -> schema.UserProfile | No
 	Иначе - возвращает запись согласно схеме.
 	"""
 
-	raise NotImplemented
+	cursor.execute('SELECT username FROM users WHERE username = ?', (username,))
+	row = cursor.fetchone()
+	
+	if row:
+		return schema.UserProfile(username=row[0])
+	return None

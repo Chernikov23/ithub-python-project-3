@@ -5,6 +5,7 @@ from app.api.exceptions import (
 	ConflictHTTPException,
 	NotFoundHTTPException,
 	CredentialsHTTPException,
+	NotAuthorizedHTTPException,
 )
 from app.api.dependencies import CurrentUser, SessionDatabase
 from app.database.exceptions import DuplicateDatabaseException
@@ -38,7 +39,17 @@ def get_dreams_list(
 	воспользоваться упомянутым в schema.py методом валидации ORM-слоя
 	"""
 
-	raise NotImplementedError
+	dreams, total = dreams_service.get_list(
+		session=session,
+		limit=limit,
+		offset=offset,
+		author=author
+	)
+	
+	return schema.MultipleDreams(
+		dreams=[schema.Dream.model_validate(dream) for dream in dreams],
+		dreams_count=total
+	)
 
 
 @dreams_router.post(
@@ -66,7 +77,15 @@ def create_dream(
 	Иначе - возвращает результат согласно схеме.
 	"""
 
-	raise NotImplementedError
+	try:
+		dream = dreams_service.create(
+			session=session,
+			new_dream=new_dream_payload,
+			author=current_user
+		)
+		return schema.Dream.model_validate(dream)
+	except DuplicateDatabaseException:
+		raise ConflictHTTPException(detail='Вы уже добавляли сон с таким описанием')
 
 
 @dreams_router.get(
@@ -88,7 +107,11 @@ def get_dream(
 	Иначе - возвращает результат согласно схеме
 	"""
 
-	raise NotImplementedError
+	dream = dreams_service.get_by_id(session=session, id=id)
+	if not dream:
+		raise NotFoundHTTPException(detail='Сон не найден')
+	
+	return schema.Dream.model_validate(dream)
 
 
 @dreams_router.delete(
@@ -118,4 +141,11 @@ def delete(
 	Иначе - запрашивает dreams_service на удаление сна.
 	"""
 
-	raise NotImplementedError
+	dream = dreams_service.get_by_id(session=session, id=id)
+	if not dream:
+		raise NotFoundHTTPException(detail='Сон не найден')
+	
+	if dream.author.username != current_user.username:
+		raise NotAuthorizedHTTPException(detail='Вы не являетесь автором этого сна')
+	
+	dreams_service.delete(session=session, dream_id=id)
