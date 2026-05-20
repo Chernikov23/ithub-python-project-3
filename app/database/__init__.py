@@ -1,6 +1,6 @@
 import sqlite3
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
 from app.config import settings
@@ -21,3 +21,6 @@ SessionLocal = sessionmaker(autoflush=False, bind=engine)
 
 from app.database.models import *
 Base.metadata.create_all(bind=engine)
+
+
+print('Users registered:', SessionLocal().execute(text('SELECT username FROM users;')).scalars().all())

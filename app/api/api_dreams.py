@@ -76,6 +76,32 @@ def create_dream(
 	except DuplicateDatabaseException:
 		raise ConflictHTTPException('Сон с таким описанием уже существует.')
 
+@dreams_router.put(
+		'/{id}',
+		summary='Изменение сна',
+		response_model=schema.Dream,
+		responses = {
+			status.HTTP_401_UNAUTHORIZED: {'description': 'Ошибка токена или пользовательских данных'},
+			status.HTTP_404_NOT_FOUND: {'description': 'Сон не найден'},
+			status.HTTP_422_UNPROCESSABLE_CONTENT: {'description': 'Данные не валидны'},
+		},
+)
+def update_dream(
+	current_user: CurrentUser,
+	session: SessionDatabase,
+	update_dream_payload: schema.NewDream,
+	id: schema.IndexType = Path(..., title='Идентификатор сна для изменения'),
+) -> schema.Dream:
+	
+	dream = dreamsvc.get_by_id(session=session, id=id)
+
+	if not dream:
+		raise NotFoundHTTPException()
+	
+	if dream.author.username != current_user.username and current_user.role != 'superuser':
+		raise AccessDeniedHTTPException()
+
+	return dreamsvc.update_by_id(session=session, id=id, update_data=update_dream_payload)
 
 @dreams_router.get(
 	'/{id}',

@@ -72,12 +72,12 @@ def delete_by_username(
 	username: schema.UsernameType = Path(..., description='Имя пользователя'),
 ) -> None:
 	"""
-	Запрашивает users_service на получение пользователя по юзернейму.
+	Запрашивает users_service на удаление пользователя по юзернейму.
 	Если пользователь не найден, выбрасывает NotFoundHTTPException c
 	пояснением. Иначе - отвечает согласно схеме.
 	"""
 
-	if current_user.username != username and current_user.role != 'superuser':
+	if current_user.role != 'superuser':
 		return AccessDeniedHTTPException()
 
 	usersvc.delete(session=session, username=username)
@@ -110,6 +110,47 @@ def update_current(
 	user = usersvc.update(
 		session=session, username=current_user.username, update_data=update_user_payload
 	)
+
+	if not user:
+		raise NotFoundHTTPException()
+
+	return user
+
+@users_router.put(
+	'/{username}',
+	summary='Изменить данные пользователя по юзернейму',
+	description='Суперпользователь может изменить данные пользователя по юзернейму',
+	response_model=schema.UserProfile,
+	status_code=200,
+	responses={
+		status.HTTP_401_UNAUTHORIZED: {'description': 'Ошибка токена или пользовательских данных'},
+		status.HTTP_404_NOT_FOUND: {'description': 'Пользователь не найден'},
+		status.HTTP_422_UNPROCESSABLE_CONTENT: {'description': 'Данные не валидны'},
+	},
+)
+def update_by_username(
+	session: SessionDatabase,
+	current_user: CurrentUser,
+	username: schema.UsernameType = Path(..., description='Имя пользователя'),
+	update_user_payload: schema.UserUpdate = Body(...),
+	status_code=200,
+	responses={
+		status.HTTP_401_UNAUTHORIZED: {'description': 'Ошибка токена или пользовательских данных'},
+		status.HTTP_404_NOT_FOUND: {'description': 'Пользователь не найден'},
+		status.HTTP_422_UNPROCESSABLE_CONTENT: {'description': 'Данные не валидны'},
+	},
+	response_model=schema.UserProfile
+) -> schema.UserProfile:
+	"""
+	Запрашивает users_service на изменение данных пользователя по юзернейму.
+	Если пользователь не найден, выбрасывает NotFoundHTTPException c
+	пояснением. Иначе - отвечает согласно схеме.
+	"""
+
+	if current_user.role != 'superuser':
+		raise AccessDeniedHTTPException()
+	
+	user = usersvc.update(session=session, username=username, update_data=update_user_payload)
 
 	if not user:
 		raise NotFoundHTTPException()

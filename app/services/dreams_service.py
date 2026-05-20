@@ -22,7 +22,7 @@ def get_by_id(*, session: Session, id: schema.IndexType) -> schema.Dream | None:
 
 	favorited_by = (
 		session.execute(
-			text('SELECT username FROM dream_favorite WHERE dream_id = :id'), {'id': id}
+			text('SELECT username FROM dream_favorite WHERE dream_id = :id;'), {'id': id}
 		)
 		.scalars()
 		.all()
@@ -35,6 +35,30 @@ def get_by_id(*, session: Session, id: schema.IndexType) -> schema.Dream | None:
 		created_at=datetime.fromisoformat(dream[3]).strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
 		favorited_by=favorited_by,
 	)
+
+def update_by_id(*, session: Session, id: schema.IndexType, update_data: schema.NewDream) -> schema.Dream | None:
+	dream = session.execute(
+		text('UPDATE dreams SET description = :description WHERE id = :id RETURNING author, created_at;'),
+		{'description': update_data.description, 'id': id},
+	).fetchone()
+
+	if not dream:
+		return None
+
+	author = usersvc.get_by_username(session=session, username=dream[0])
+
+	favorited_by = (
+		session.execute(
+			text('SELECT username FROM dream_favorite WHERE dream_id = :id'), {'id': id}
+		)
+		.scalars()
+		.all()
+	)
+
+	return schema.Dream(id=id, description=update_data.description,
+					 author=schema.UserProfile(username=author.username, bio=author.bio),
+					 created_at=datetime.fromisoformat(dream[1]).strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
+					 favorited_by=favorited_by)
 
 
 def get_list(
