@@ -1,29 +1,22 @@
-from sqlite3 import Cursor
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 from app import schema
+from app.database import models
 
-
-def get_by_username(*, cursor: Cursor, username: str) -> schema.UserProfile | None:
+def get_by_username(*, session: Session, username: str) -> schema.UserProfile | None:
+	user = session.execute(
+		select(models.User).where(models.User.username == username)
+	).unique().scalar_one_or_none()
 	
-	cursor.execute(
-		"SELECT username FROM users WHERE username = ?",
-		(username,)
-	)
-	row = cursor.fetchone()
-	if row:
-		return schema.UserProfile(username = row[0])
+	if user:
+		return schema.UserProfile(username=user.username)
 	return None
 
-def get_user_with_password(*,cursor:Cursor,username:str) -> tuple[str, str] | None:
-	cursor.execute(
-		"SELECT username,password FROM users WHERE username = ?",
-		(username,)
-	)
-	return cursor.fetchone()
-	"""
-	:cursor: курсор подключения к базе данных
-	:username: уникальный юзернейм пользователя
-
-	Запрашивает пользователя из базы данных.
-	Если пользователь не найден, возвращает None.
-	Иначе - возвращает запись согласно схеме.
-	"""
+def get_user_with_password(*, session: Session, username: str) -> tuple[str, str] | None:
+	user = session.execute(
+		select(models.User).where(models.User.username == username)
+	).unique().scalar_one_or_none()
+	
+	if user:
+		return (user.username, user.password)
+	return None

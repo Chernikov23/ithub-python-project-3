@@ -1,31 +1,16 @@
-import sqlite3
 from collections.abc import Sequence
 from datetime import datetime
-import time 
-
-from sqlalchemy import Select, select, func
+from sqlalchemy import select, func, desc
 from sqlalchemy.orm import Session, joinedload
-
 from app import schema
 from app.database import models
-
 from app.database.exceptions import DuplicateDatabaseException
 
 def get_by_id(session: Session, id: int) -> models.Dream | None:
-	"""
-	:session: сессия sqlalchemy
-	:id: идентификатор сна
-
-	Возвращает информацию обо сне, подгружая
-	данные об авторе из связанной таблицы 
-	(например, используя метод joined_load).
-	"""
-
+	session.expire_all()
 	return session.execute(
-        select(models.Dream)
-        .options(joinedload(models.Dream.author))
-        .where(models.Dream.id == id)
-    ).unique().scalar_one_or_none()
+		select(models.Dream).where(models.Dream.id == id)
+	).unique().scalar_one_or_none()
 
 
 def get_list(
@@ -35,72 +20,50 @@ def get_list(
 	offset: int,
 	author: str | None = None,
 ) -> tuple[Sequence[models.Dream], int]:
-	"""
-	:session: сессия sqlalchemy
-	:limit: лимит ответа после фильтрации
-	:offset: отступ ответа после фильтрации
-	:author: фильтр по юзернейму автора
+	session.expire_all()
 
-	Получает сны, подгружая данные об авторе
-	и лайках (favorited_by) из связанных таблиц
-	(например, используя метод joined_load).
-
-	Опционально, фильтрует по автору
-		Dream.author.has(User.username.ilike(f'%{author}%')),
-
-	Подсчитывает количество снов после всех наложенных фильтров.
-	Наконец, возвращает это число вместе с пагинированным результатом.
-	"""
-	query = select(models.Dream).options(joinedload(models.Dream.author))
+	query = select(models.Dream).options(joinedload(models.Dream.author)).order_by(models.Dream.id.desc())
+	count_query = select(func.count(models.Dream.id))
 
 	if author:
-		query = query.where(models.Dream.author.has(username=author))
+		query = query.where(models.Dream.author_id.ilike(f"%{author}%"))
+		count_query = count_query.where(models.Dream.author_id.ilike(f"%{author}%"))
 
-	total = session.execute(
-        select(func.count()).select_from(models.Dream).where(query.whereclause)
-    ).scalar()
+	total = session.execute(count_query).scalar() or 0
+	dreams = session.execute(query.limit(limit).offset(offset)).unique().scalars().all()
 
-	dreams = session.execute(
-    query.limit(limit).offset(offset)
-	).unique.scalars().all()
+	return dreams, total
 
-
-
-	return dreams,total
 
 def create(
-    *, session: Session, new_dream: schema.NewDream, author: schema.UserProfile
+	*, session: Session, new_dream: schema.NewDream, author: schema.UserProfile
 ) -> models.Dream:
-    existing = session.execute(
-        select(models.Dream).where(
-            models.Dream.author_id == author.username,
-            models.Dream.description == new_dream.description
-        )
-    ).first()
-    
-    if existing:
-        raise DuplicateDatabaseException('дубликат')
-    
-    dream = models.Dream(
-        author_id=author.username,
-        description=new_dream.description,
-        created_at=datetime.now()
-    )
-    
-    session.add(dream)
-    session.flush()
-    session.refresh(dream, attribute_names=['author'])
-    
-    return dream
+	existing = session.execute(
+		select(models.Dream).where(
+			models.Dream.author_id == author.username,
+			models.Dream.description == new_dream.description
+		)
+	).unique().first()
+	
+	if existing:
+		raise DuplicateDatabaseException('дубликат')
+	
+	dream = models.Dream(
+		author_id=author.username,
+		description=new_dream.description,
+		created_at=datetime.now()
+	)
+	
+	session.add(dream)
+	session.commit()
+	session.expire_all()
+	
+	return dream
 
 
 def delete(*, session: Session, dream_id: int) -> None:
-	"""
-	:session: сессия sqlalchemy
-	:dream_id: идентификатор сна для удаления
-
-	Удаляет сон из базы данных.
-	"""
-	dream = session.get(models.Dream,dream_id)
+	dream = session.get(models.Dream, dream_id)
 	if dream:
 		session.delete(dream)
+		session.commit()
+		session.expire_all()

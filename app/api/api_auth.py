@@ -1,8 +1,8 @@
 from fastapi import APIRouter, status
 
 from app import schema
-from app.api.exceptions import ConflictHTTPException, LoginHTTPException, CredentialsHTTPException, NotFoundHTTPException
-from app.api.dependencies import OAuth2Form, CurrentUser, CursorDatabase
+from app.api.exceptions import ConflictHTTPException, LoginHTTPException
+from app.api.dependencies import OAuth2Form, CurrentUser, SessionDatabase
 from app.services import auth_service, users_service
 
 
@@ -19,23 +19,14 @@ auth_router = APIRouter(prefix='/auth', tags=['Аккаунты'])
 	},
 )
 def register(
-	cursor: CursorDatabase,
+	session: SessionDatabase,
 	new_user_payload: schema.UserCreate,
 ) -> None:
-	"""
-	Запрашивает users_service на предмет наличия пользователя с переданным именем.
-	Если пользователь найден, выбрасывает ConflictHTTPException с пояснением.
-	Иначе - проводит регистрацию через auth_service.
-	"""
-	existing = users_service.get_by_username(cursor=cursor, username=new_user_payload.username)
+	existing = users_service.get_by_username(session=session, username=new_user_payload.username)
 	if existing:
 		raise ConflictHTTPException(detail="имя занято")
-		# raise ConflictHTTPException("имя занято")
 	
-	auth_service.register(cursor=cursor, user_data=new_user_payload)
-	cursor.connection.commit()
-
-
+	auth_service.register(session=session, user_data=new_user_payload)
 
 
 @auth_router.post(
@@ -49,26 +40,20 @@ def register(
 	},
 )
 def login(
-	cursor: CursorDatabase,
+	session: SessionDatabase,
 	user_credentials: OAuth2Form,
 ) -> schema.UserToken:
-	"""
-	Запрашивает users_service на предмет наличия пользователя с переданным именем.
-	Если пользователь не найден, выбрасывает LoginHTTPException с пояснением.
-	Иначе - запрашивает аутентификацию через auth_service. Если пароль некорректен,
-	выбрасывает LoginHTTPException с пояснением. Иначе - возвращает токен согласно схеме.
-	"""
 	user = users_service.get_by_username(
-		cursor=cursor,
+		session=session,
 		username=user_credentials.username
 	)
 	if user is None:
 		raise LoginHTTPException()
 	
 	token = auth_service.authenticate(
-		cursor=cursor,
+		session=session,
 		user_data=schema.UserCreate(
-			username = user_credentials.username,
+			username=user_credentials.username,
 			password=user_credentials.password
 		)
 	)
@@ -94,8 +79,3 @@ def get_current(
 	current_user: CurrentUser,
 ) -> schema.UserProfile:
 	return current_user
-
-	"""
-	Получает текущего пользователя через инъекцию зависимостей, в случае
-	ошибки выбрасывает CredentialsHTTPException. Иначе - отвечает согласно схеме.
-	"""
