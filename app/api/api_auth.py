@@ -8,7 +8,6 @@ from app.api.exceptions import (
 )
 from app.services import auth_service, users_service
 
-# Создаем роутер с именем auth_router
 auth_router = APIRouter(prefix='/auth', tags=['Аккаунты'])
 
 @auth_router.post('/', status_code=201)

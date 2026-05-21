@@ -12,8 +12,9 @@ from app.database import SessionLocal, get_sqlite3_connection, models
 from app.services import users_service
 
 oauth2 = OAuth2PasswordBearer(tokenUrl='/auth/login')
-TokenDependency = Annotated[str, Depends(oauth2)]
+
 OAuth2Form = Annotated[OAuth2PasswordRequestForm, Depends()]
+TokenDependency = Annotated[str, Depends(oauth2)]
 
 def get_db() -> Generator[Session, None, None]:
     db = SessionLocal()
@@ -44,14 +45,18 @@ def get_current_user(
         username = security.decode_access_token(token)
         user = users_service.get_by_username(cursor=cursor, username=username)
         if not user:
-            raise NotFoundHTTPException(detail='Пользователь не найден')
+            raise CredentialsHTTPException()
         return user
     except Exception:
-        raise CredentialsHTTPException
+        raise CredentialsHTTPException()
 
 CurrentUser = Annotated[schema.UserProfile, Depends(get_current_user)]
 
 def get_current_active_user(
     current_user: CurrentUser,
+    session: SessionDatabase,
 ) -> models.User:
-    return models.User(username=current_user.username)
+    user = session.query(models.User).filter(models.User.username == current_user.username).first()
+    if not user:
+        raise CredentialsHTTPException()
+    return user

@@ -15,7 +15,11 @@ def get_all_dreams(session: Session, page: int, per_page: int, author_name: str 
     if author_name:
         query = query.where(models.Dream.author_id.ilike(f"%{author_name}%"))
     
-    total_count = session.execute(select(func.count()).select_from(query.subquery())).scalar() or 0
+    total_count = session.query(func.count(models.Dream.id))
+    if author_name:
+        total_count = total_count.filter(models.Dream.author_id.ilike(f"%{author_name}%"))
+    total_count = total_count.scalar() or 0
+
     results = session.execute(query.offset((page-1)*per_page).limit(per_page)).scalars().unique().all()
     return results, total_count
 
@@ -28,7 +32,7 @@ def create(session: Session, new_dream: schema.DreamCreate, author: models.User)
         return db_dream
     except IntegrityError:
         session.rollback()
-        raise DuplicateDatabaseException()
+        raise DuplicateDatabaseException(message="Duplicate dream")
 
 def update(session: Session, dream_id: int, updated_dream_payload: schema.DreamUpdate) -> models.Dream:
     dream = session.get(models.Dream, dream_id)
@@ -36,7 +40,7 @@ def update(session: Session, dream_id: int, updated_dream_payload: schema.DreamU
         dream.description = updated_dream_payload.description
         session.commit()
         session.refresh(dream)
-    return dream # type: ignore
+    return dream 
 
 def delete(session: Session, dream_id: int) -> None:
     dream = session.get(models.Dream, dream_id)
