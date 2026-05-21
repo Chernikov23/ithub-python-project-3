@@ -177,7 +177,10 @@
               "listen": "prerequest",
               "script": {
                 "exec": [
-                  "pm.globals.unset('token');"
+                  "pm.globals.unset('token');",
+                  "const randomSuffix = Math.random().toString(36).substring(2, 10);",
+                  "pm.globals.set('USERNAME', `john.doe.${randomSuffix}`);",
+                  "pm.globals.set('PASSWORD', 'password');"
                 ],
                 "type": "text/javascript",
                 "packages": {},

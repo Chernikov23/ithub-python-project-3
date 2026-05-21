@@ -1,10 +1,11 @@
-import sqlite3
 from collections.abc import Sequence
 
-from sqlalchemy import Select, select
+from sqlalchemy import Select, select, func
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, joinedload
 
 from app import schema
+from app.database import exceptions
 from app.database import models
 
 
@@ -18,7 +19,8 @@ def get_by_id(session: Session, id: int) -> models.Dream | None:
 	(например, используя метод joined_load).
 	"""
 
-	raise NotImplementedError
+	statement = select(models.Dream).where(models.Dream.id == id).options(joinedload(models.Dream.author))
+	return session.scalars(statement).unique().one_or_none()
 
 
 def get_list(
@@ -45,7 +47,17 @@ def get_list(
 	Наконец, возвращает это число вместе с пагинированным результатом.
 	"""
 
-	raise NotImplementedError
+	query = select(models.Dream).options(joinedload(models.Dream.author)).order_by(models.Dream.id.desc())
+	count_query = select(func.count()).select_from(models.Dream)
+
+	if author:
+		query = query.where(models.Dream.author.has(models.User.username.ilike(f'%{author}%')))
+		count_query = count_query.where(models.Dream.author.has(models.User.username.ilike(f'%{author}%')))
+
+	dreams = session.scalars(query.limit(limit).offset(offset)).unique().all()
+	dreams_count = session.scalar(count_query) or 0
+
+	return dreams, dreams_count
 
 
 def create(
@@ -61,7 +73,16 @@ def create(
 	Иначе - возвращает ORM-объект с новым сном.
 	"""
 
-	raise NotImplementedError
+	dream = models.Dream(description=new_dream.description, author_id=author.username)
+	session.add(dream)
+	try:
+		session.commit()
+		session.refresh(dream)
+	except IntegrityError as exc:
+		session.rollback()
+		raise exceptions.DuplicateDatabaseException from exc
+
+	return dream
 
 
 def delete(*, session: Session, dream_id: int) -> None:
@@ -72,4 +93,9 @@ def delete(*, session: Session, dream_id: int) -> None:
 	Удаляет сон из базы данных.
 	"""
 
-	raise NotImplementedError
+	dream = get_by_id(session, dream_id)
+	if dream is None:
+		return
+
+	session.delete(dream)
+	session.commit()

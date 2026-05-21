@@ -12,7 +12,7 @@ def get_database_uri():
 
 
 class Settings(BaseSettings):
-	DEBUG: bool = os.getenv('PYTHON_ENVIRONMENT') != 'testing'
+	DEBUG: bool = False
 
 	JWT_SECRET_KEY: str = secrets.token_urlsafe(32)
 	JWT_EXPIRE: int = 60 * 24 * 8

@@ -1,15 +1,20 @@
-from sqlite3 import Cursor
+from sqlalchemy.orm import Session
+
 from app import schema
+from app.database import models
 
 
-def get_by_username(*, cursor: Cursor, username: str) -> schema.UserProfile | None:
+def get_by_username(*, session: Session, username: str) -> schema.UserProfile | None:
 	"""
-	:cursor: курсор подключения к базе данных
+	:session: SQLAlchemy сессия для подключения к базе данных
 	:username: уникальный юзернейм пользователя
 
-	Запрашивает пользователя из базы данных.
+	Запрашивает пользователя из базе данных.
 	Если пользователь не найден, возвращает None.
 	Иначе - возвращает запись согласно схеме.
 	"""
 
-	raise NotImplemented
+	user = session.get(models.User, username)
+	if user is None:
+		return None
+	return schema.UserProfile(username=user.username)

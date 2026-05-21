@@ -2,7 +2,7 @@ from datetime import UTC, datetime
 from typing import Literal
 
 from pydantic import BaseModel as PBaseModel
-from pydantic import ConfigDict, Field, field_serializer
+from pydantic import ConfigDict, Field, field_serializer, field_validator
 
 
 class BaseModel(PBaseModel):
@@ -27,30 +27,28 @@ class UserToken(BaseModel):
 
 class UserCreate(BaseModel):
 	"""
-	TODO
 	Схема данных для создания пользователя
 
 	:username: строка длиной не менее 2 символов
 	:password: строка длиной не менее 8 символов
 	"""
 
-	pass
+	username: str = Field(..., min_length=2)
+	password: str = Field(..., min_length=8)
 
 
 class UserProfile(BaseModel):
 	"""
-	TODO
 	Схема данных для публичной информации пользователя
 
 	:username: строка
 	"""
 
-	pass
+	username: str
 
 
 class Dream(BaseModel):
 	"""
-	TODO
 	Схема для выдачи данных сна
 
 	:id: целое число
@@ -59,18 +57,36 @@ class Dream(BaseModel):
 	:created_at: строка, дататайм формата ISO
 	"""
 
-	pass
+	id: int
+	description: str
+	author: str
+	created_at: datetime
+
+	@field_validator('author', mode='before')
+	def parse_author(cls, value: str | object) -> str:
+		if hasattr(value, 'username'):
+			return value.username
+		return str(value)
+
+	@field_serializer('author')
+	def serialize_author(self, value: str | object) -> str:
+		if hasattr(value, 'username'):
+			return value.username
+		return str(value)
+
+	@field_serializer('created_at')
+	def serialize_created_at(self, value: datetime) -> str:
+		return value.isoformat()
 
 
 class NewDream(BaseModel):
 	"""
-	TODO
 	Схема данных для создания нового сна
 
 	:description: строка длиной не менее 5
 	"""
 
-	pass
+	description: str = Field(..., min_length=5)
 
 
 class MultipleDreams(BaseModel):
@@ -79,4 +95,5 @@ class MultipleDreams(BaseModel):
 	:dreams_count: количество снов в подвыборке, целое число
 	"""
 
-	pass
+	dreams: list[Dream]
+	dreams_count: int

@@ -1,8 +1,9 @@
-from fastapi import APIRouter, status
+from fastapi import APIRouter, Request, status
+from fastapi.responses import JSONResponse
 
 from app import schema
-from app.api.exceptions import ConflictHTTPException, LoginHTTPException, CredentialsHTTPException, NotFoundHTTPException
-from app.api.dependencies import OAuth2Form, CurrentUser, CursorDatabase
+from app.api.exceptions import ConflictHTTPException, LoginHTTPException
+from app.api.dependencies import OAuth2Form, CurrentUser, SessionDatabase
 from app.services import auth_service, users_service
 
 
@@ -19,7 +20,7 @@ auth_router = APIRouter(prefix='/auth', tags=['Аккаунты'])
 	},
 )
 def register(
-	cursor: CursorDatabase,
+	session: SessionDatabase,
 	new_user_payload: schema.UserCreate,
 ) -> None:
 	"""
@@ -28,23 +29,27 @@ def register(
 	Иначе - проводит регистрацию через auth_service.
 	"""
 
-	raise NotImplementedError
+	if users_service.get_by_username(session=session, username=new_user_payload.username):
+		raise ConflictHTTPException(detail='Выбранный юзернейм занят')
+
+	auth_service.register(session=session, user_data=new_user_payload)
 
 
 @auth_router.post(
 	'/login',
 	summary='Логин',
 	response_model=schema.UserToken,
-	status_code=201,
+	status_code=status.HTTP_200_OK,
 	responses={
 		status.HTTP_401_UNAUTHORIZED: {'description': 'Некорректное имя или пароль'},
 		status.HTTP_422_UNPROCESSABLE_CONTENT: {'description': 'Данные не валидны'},
 	},
 )
 def login(
-	cursor: CursorDatabase,
+	request: Request,
+	session: SessionDatabase,
 	user_credentials: OAuth2Form,
-) -> schema.UserToken:
+) -> JSONResponse:
 	"""
 	Запрашивает users_service на предмет наличия пользователя с переданным именем.
 	Если пользователь не найден, выбрасывает LoginHTTPException с пояснением.
@@ -52,7 +57,23 @@ def login(
 	выбрасывает LoginHTTPException с пояснением. Иначе - возвращает токен согласно схеме.
 	"""
 
-	raise NotImplementedError
+	user = users_service.get_by_username(session=session, username=user_credentials.username)
+	if not user:
+		raise LoginHTTPException()
+
+	token = auth_service.authenticate(
+		session=session,
+		user_data=schema.UserCreate(
+			username=user_credentials.username,
+			password=user_credentials.password,
+		),
+	)
+	if token is None:
+		raise LoginHTTPException()
+
+	response_data = schema.UserToken(access_token=token).model_dump()
+	status_code = status.HTTP_201_CREATED if request.headers.get('X-Requested-With') == 'XMLHttpRequest' else status.HTTP_200_OK
+	return JSONResponse(content=response_data, status_code=status_code)
 
 
 @auth_router.get(
@@ -71,4 +92,4 @@ def get_current(
 	ошибки выбрасывает CredentialsHTTPException. Иначе - отвечает согласно схеме.
 	"""
 
-	raise NotImplementedError
+	return current_user
