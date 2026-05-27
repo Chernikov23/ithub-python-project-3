@@ -32,13 +32,6 @@ def get_dreams_list(
 	offset: int = Query(0, title='Величина отступа (по умолчанию  0)'),
 	author: str = Query(None, title='Фильтр по юзернейму автора'),
 ) -> schema.MultipleDreams:
-	"""
-	Запрашивает dreams_service, возвращает результат согласно схеме.
-
-	Примечание: здесь и далее при сериализации ответа будет красиво
-	воспользоваться упомянутым в schema.py методом валидации ORM-слоя
-	"""
-
 	items, total = dreams_service.get_list(session=session, limit=limit, offset=offset, author=author)
 
 	def _map(d):
@@ -64,14 +57,6 @@ def create_dream(
 	session: SessionDatabase,
 	new_dream_payload: schema.NewDream,
 ) -> schema.Dream:
-	"""
-	Получает текущего пользователя через инъекцию зависимостей,
-	в случае ошибки выбрасывает CredentialsHTTPException.
-	Иначе - запрашивает dreams_service на создание сна. В случае
-	ошибки дублирования выбрасывает ConflictHTTPException с пояснением.
-	Иначе - возвращает результат согласно схеме.
-	"""
-
 	try:
 		created = dreams_service.create(session=session, new_dream=new_dream_payload, author=current_user)
 		return schema.Dream(id=created.id, description=created.description, author=created.author.username, created_at=created.created_at)
@@ -92,12 +77,6 @@ def get_dream(
 	session: SessionDatabase,
 	id: int = Path(..., title='Идентификатор сна для чтения'),
 ) -> schema.Dream:
-	"""
-	Запрашивает dreams_service на получение сна по идентификатору.
-	Если сон не найден, выбрасывает NotFoundHTTPException c пояснением.
-	Иначе - возвращает результат согласно схеме
-	"""
-
 	dream = dreams_service.get_by_id(session=session, id=id)
 	if not dream:
 		raise NotFoundHTTPException(detail='Сон не найден')
@@ -121,21 +100,10 @@ def delete(
 	session: SessionDatabase,
 	id: int = Path(..., title='Идентификатор сна для удаления'),
 ) -> None:
-	"""
-	Получает текущего пользователя через инъекцию зависимостей,
-	в случае ошибки выбрасывает CredentialsHTTPException.
-	Иначе - запрашивает dreams_service на получение сна по идентификатору.
-	Если сон не найден, выбрасывает NotFoundHTTPException c пояснением.
-	Иначе - проверяет, является ли текущий пользователь автором сна, который
-	он хочет удалить. Если нет - выбрасывает исключение c пояснением.
-	Иначе - запрашивает dreams_service на удаление сна.
-	"""
-
 	dream = dreams_service.get_by_id(session=session, id=id)
 	if not dream:
 		raise NotFoundHTTPException(detail='Сон не найден')
 	if dream.author.username != current_user.username:
 		raise NotAuthorizedHTTPException(detail='Пользователь не является автором сна')
-	# perform deletion
 	dreams_service.delete(session=session, dream_id=id)
 	return None
