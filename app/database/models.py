@@ -1,6 +1,16 @@
 from datetime import datetime
 
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Table, Text, UniqueConstraint
+from sqlalchemy import (
+	Boolean,
+	Column,
+	DateTime,
+	ForeignKey,
+	Integer,
+	String,
+	Table,
+	Text,
+	UniqueConstraint,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -35,9 +45,7 @@ class Dream(Base):
 		lazy='joined',
 	)
 
-	__table_args__ = (
-        UniqueConstraint("author_id", "description", name="uq_author_description"),
-    )
+	__table_args__ = (UniqueConstraint('author_id', 'description', name='uq_author_description'),)
 
 
 class User(Base):
@@ -46,6 +54,9 @@ class User(Base):
 	username: Mapped[str] = mapped_column(String, primary_key=True, index=True)
 	password: Mapped[str | None] = mapped_column(String, nullable=False)
 	bio: Mapped[str | None] = mapped_column(Text, nullable=True)
+	is_superuser: Mapped[bool] = mapped_column(
+		Boolean, default=False, server_default='0', nullable=False
+	)
 
 	dreams: Mapped[list[Dream]] = relationship('Dream', back_populates='author', lazy='joined')
 	favorite_dreams: Mapped[list[Dream]] = relationship(

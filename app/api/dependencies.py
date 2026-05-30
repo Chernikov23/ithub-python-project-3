@@ -8,9 +8,13 @@ from jwt import InvalidTokenError
 from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
-from app import security, schema
-from app.api.exceptions import CredentialsHTTPException, NotFoundHTTPException
-from app.database import SessionLocal, get_sqlite3_connection, models
+from app import schema, security
+from app.api.exceptions import (
+	CredentialsHTTPException,
+	NotAuthorizedHTTPException,
+	NotFoundHTTPException,
+)
+from app.database import SessionLocal, get_sqlite3_connection
 from app.services import users_service
 
 oauth2 = OAuth2PasswordBearer(tokenUrl='/auth/login')
@@ -32,8 +36,8 @@ def _get_db_sqlite() -> Generator[sqlite3.Cursor]:
 	try:
 		yield cursor
 		connection.commit()
-	except (sqlite3.DatabaseError):
-		connection.rollback()	
+	except sqlite3.DatabaseError:
+		connection.rollback()
 	finally:
 		connection.close()
 
@@ -57,3 +61,12 @@ def _get_current_user(
 
 
 CurrentUser = Annotated[schema.UserProfile, Depends(_get_current_user)]
+
+
+def _get_current_superuser(current_user: CurrentUser) -> schema.UserProfile:
+	if not current_user.is_superuser:
+		raise NotAuthorizedHTTPException(detail='Требуются права суперпользователя')
+	return current_user
+
+
+CurrentSuperuser = Annotated[schema.UserProfile, Depends(_get_current_superuser)]

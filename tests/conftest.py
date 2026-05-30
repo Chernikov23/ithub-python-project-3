@@ -7,14 +7,14 @@ from collections.abc import Generator
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import delete, create_engine, select
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy import create_engine, delete, select
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session, sessionmaker
 
 from app.config import settings
-from app.security import create_access_token
 from app.database import Base, models
 from app.main import app
+from app.security import create_access_token
 
 engine = create_engine(settings.DATABASE_URI, pool_pre_ping=True)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -50,7 +50,9 @@ def create_john_user(session: Session) -> models.User | None:
 		return john_object
 	except (IntegrityError, sqlite3.IntegrityError):
 		session.rollback()
-		return session.scalar(select(models.User).where(models.User.username == john_object.username))
+		return session.scalar(
+			select(models.User).where(models.User.username == john_object.username)
+		)
 	finally:
 		session.close()
 
@@ -67,7 +69,29 @@ def create_jane_user(session: Session) -> models.User | None:
 		return jane_object
 	except (IntegrityError, sqlite3.IntegrityError):
 		session.rollback()
-		return session.scalar(select(models.User).where(models.User.username == jane_object.username))
+		return session.scalar(
+			select(models.User).where(models.User.username == jane_object.username)
+		)
+	finally:
+		session.close()
+
+
+def create_admin_user(session: Session) -> models.User | None:
+	admin_object = models.User(
+		username='admin',
+		password='admin.password',
+		is_superuser=True,
+	)
+	try:
+		session.add(admin_object)
+		session.commit()
+		session.refresh(admin_object)
+		return admin_object
+	except (IntegrityError, sqlite3.IntegrityError):
+		session.rollback()
+		return session.scalar(
+			select(models.User).where(models.User.username == admin_object.username)
+		)
 	finally:
 		session.close()
 
@@ -91,6 +115,12 @@ def acting_as_john(session: Session, client: TestClient) -> models.User:
 
 def acting_as_jane(session: Session, client: TestClient) -> models.User:
 	user = create_jane_user(session)
+	assert user is not None
+	return acting_as_user(user, client)
+
+
+def acting_as_admin(session: Session, client: TestClient) -> models.User:
+	user = create_admin_user(session)
 	assert user is not None
 	return acting_as_user(user, client)
 
@@ -135,6 +165,5 @@ def generate_dreams(session: Session) -> models.User:
 		session.commit()
 
 	session.refresh(john)
-	
-	# session.close()
+
 	return john

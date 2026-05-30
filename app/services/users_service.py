@@ -4,27 +4,36 @@ from app import schema
 
 
 def get_by_username(*, cursor: Cursor, username: str) -> schema.UserProfile | None:
-	"""
-	:cursor: курсор подключения к базе данных
-	:username: уникальный юзернейм пользователя
-	
-	Запрашивает пользователя из базы данных. 
-	Если пользователь не найден, возвращает None.
-	Иначе - возвращает запись согласно схеме.
-	"""	
-	
-	raise NotImplemented
+	row = cursor.execute(
+		'SELECT username, bio, is_superuser FROM users WHERE username = ?',
+		(username,),
+	).fetchone()
+
+	if row is None:
+		return None
+
+	return schema.UserProfile(username=row[0], bio=row[1], is_superuser=bool(row[2]))
 
 
-def update(*, cursor: Cursor, username: int, update_data: schema.UserUpdate) -> schema.UserProfile | None:
-	"""
-	:cursor: курсор подключения к базе данных
-	:username: уникальный юзернейм пользователя
-	:update_data: данные для обновления
-	
-	Запрашивает пользователя из базы данных. 
-	Если пользователь не найден, возвращает None.
-	Иначе - возвращает обновленную запись согласно схеме. 
-	"""	
+def update(
+	*, cursor: Cursor, username: str, update_data: schema.UserUpdate
+) -> schema.UserProfile | None:
+	row = cursor.execute(
+		'SELECT username FROM users WHERE username = ?',
+		(username,),
+	).fetchone()
 
-	raise NotImplemented
+	if row is None:
+		return None
+
+	cursor.execute(
+		'UPDATE users SET bio = ? WHERE username = ?',
+		(update_data.bio, username),
+	)
+
+	updated = cursor.execute(
+		'SELECT username, bio, is_superuser FROM users WHERE username = ?',
+		(username,),
+	).fetchone()
+
+	return schema.UserProfile(username=updated[0], bio=updated[1], is_superuser=bool(updated[2]))
